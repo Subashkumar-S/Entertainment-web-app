@@ -6,8 +6,14 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        sm: '480px',
+        md: '768px',
+        lg: '976px',
+        xl: '1440px',
+      },
       colors:{
-        "sunset-orange": "#fc4747",
+        "orange": "#fc4747",
         "vulcan": "#10141e",
         "gray": "#5a69af",
         "mirage": "#161d2f",
@@ -15,7 +21,7 @@ export default {
       },
       fontFamily: {
         "outfit": "'Outfit', sans-serif",
-      }
+      },
     },
   },
   plugins: [],
