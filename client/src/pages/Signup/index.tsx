@@ -11,16 +11,13 @@ export default function LoginPage(){
                 <h2 className="text-[32px] pb-[40px]">Signup</h2>
                 <form action="submit" className="flex flex-col gap-6">
                     <div>
-                        {/* <label htmlFor="email"></label> */}
-                        <input name="email" id="email" type="text" placeholder="Email address" required className="w-full bg-transparent border-b-[1px] border-solid border-gray outline-none pb-4 pl-4 hover:border-white hover:cursor-pointer"/>
+                        <input name="email" id="email" type="text" placeholder="Email address" required className="input"/>
                     </div>
                     <div>
-                        {/* <label htmlFor="password"></label> */}
-                        <input name="password" id="password" type="password" placeholder="Password" required className="w-full bg-transparent border-b-[1px] border-solid border-gray outline-none pb-4 pl-4  hover:border-white hover:cursor-pointer"/>
+                        <input name="password" id="password" type="password" placeholder="Password" required className="input"/>
                     </div>
                     <div>
-                        {/* <label htmlFor="password"></label> */}
-                        <input name="password" id="password" type="password" placeholder="Repeat Password" required className="w-full bg-transparent border-b-[1px] border-solid border-gray outline-none pb-4 pl-4  hover:border-white hover:cursor-pointer"/>
+                        <input name="password" id="password" type="password" placeholder="Repeat Password" required className="input"/>
                     </div>
                     <button type="submit" className="bg-orange h-12 rounded-md text-[15px]">Create an account</button>
                 </form>

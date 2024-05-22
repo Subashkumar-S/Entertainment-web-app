@@ -12,6 +12,9 @@ export default {
         lg: '976px',
         xl: '1440px',
       },
+      backgroundImage: {
+        'trending' : "url('./src/assets/thumbnails/beyond-earth/trending/large.jpg')"
+      },
       colors:{
         "orange": "#fc4747",
         "vulcan": "#10141e",
