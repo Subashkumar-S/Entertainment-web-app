@@ -3,7 +3,7 @@ import PageWrapper from "../../components/PageWrapper";
 
 export default function HomePage() {
   return (
-    <section className="w-full min-h-screen bg-vulcan lg:flex gap-6">
+    <section className="w-full h-screen bg-vulcan lg:flex gap-6">
       <Navbar />
       <PageWrapper />
     </section>

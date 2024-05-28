@@ -1,19 +1,22 @@
 // types.ts
 
-// export interface Thumbnail {
-//     small: string;
-//     large: string;
-//   }
+export interface Thumbnail {
+    small: string;
+    large: string;
+  }
   
-//   export interface RegularThumbnail {
-//     small: string;
-//     medium: string;
-//     large: string;
-//   }
+  export interface RegularThumbnail {
+    small: string;
+    medium: string;
+    large: string;
+  }
   
   export interface TrendingDataItem {
     title: string;
-    thumbnail: string | undefined;
+    thumbnail: {
+      regular: RegularThumbnail;
+      trending: Thumbnail;
+    };
     year: number;
     category: string;
     rating: string;

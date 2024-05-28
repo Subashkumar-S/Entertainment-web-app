@@ -1,5 +1,11 @@
-export default function MoviesPage(){
-    return(
-        <h1>Movies Page</h1>
-    )
+import Navbar from "../../components/Navbar";
+import PageWrapper from "../../components/PageWrapper";
+
+export default function HomePage() {
+  return (
+    <section className="w-full lg:h-screen bg-vulcan lg:flex gap-6">
+      <Navbar />
+      <PageWrapper />
+    </section>
+  );
 }

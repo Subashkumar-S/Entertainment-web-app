@@ -10,8 +10,8 @@ export const TrendingWrapper: React.FC = () => {
 
 
   return (
-    <div className="min-h-[35vh] overflow-x-scroll font-outfit">
-      <h4 className="text-3xl text-white pb-6">Trending</h4>
+    <div className="min-h-60 md:min-h-[35vh] overflow-x-scroll font-outfit">
+      <h4 className="text-2xl md:text-3xl text-white pb-6">Trending</h4>
       <div className="flex gap-10 w-fit">
         {trendingMovies.map((movie, index) => (
           <TrendingCard 
@@ -21,6 +21,7 @@ export const TrendingWrapper: React.FC = () => {
             category = {movie.category}
             thumbnail = {movie.thumbnail.trending?.large}
             rating = {movie.rating}
+            bookmark = {movie.isBookmarked}
           />
         ))}
       </div>
