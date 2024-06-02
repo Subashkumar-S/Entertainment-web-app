@@ -54,3 +54,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     })(req, res, next);
 };
 
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+    req.logout((err) => {
+        if(err) res.status(500).json({message: "Error logging out"});
+        res.json({ message: "Logged out successfully"})
+    })
+}

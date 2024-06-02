@@ -3,16 +3,23 @@ import session from "express-session";
 import dotenv from 'dotenv';
 import authRoutes from "./routes/authRoutes";
 import passport from "./config/passportConfig";
-import connectRedis from "connect-redis";
+import RedisStore from "connect-redis";
 import redisClient from "./config/redisClient";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
-const RedisStore = connectRedis(session);
 const sessionStore = new RedisStore({ client: redisClient });
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204
+  };
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(session({
     store: sessionStore,

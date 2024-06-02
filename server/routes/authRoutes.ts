@@ -1,9 +1,11 @@
 import { Router } from "express";
-import {signup, login} from "../controllers/authController"
+import {signup, login, logout} from "../controllers/authController"
+import { checkAuthenticated, checkNotAuthenticated } from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.post("/signup", signup);
-router.post("/login", login);
+router.post("/signup", checkNotAuthenticated, signup);
+router.post("/login", checkNotAuthenticated, login);
+router.post("/logout", checkAuthenticated, logout);
 
 export default router;

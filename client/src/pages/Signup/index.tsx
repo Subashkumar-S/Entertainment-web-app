@@ -1,15 +1,57 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
 import { logo } from "../../assets";
 
-export default function LoginPage() {
+export default function SignupPage() {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== repeatPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setError("");
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/signup",
+        { fullName, email, password }
+      );
+
+      if (response.status === 201) { 
+        const { token } = response.data;
+        localStorage.setItem("token", token);
+        navigate("/");
+      } else {
+        setError("Signup failed: " + response.data.message);
+      }
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        // Axios-specific error
+        setError("Error during signup: " + (err.response?.data?.message || err.message));
+      } else {
+        // Generic error
+        setError("An unexpected error occurred: " + err.message);
+      }
+    }
+  };
+
   return (
     <section className="w-full h-screen bg-vulcan pt-12 px-4 flex flex-col items-center">
-      <div className="w-full flex items-center justify-center ">
+      <div className="w-full flex items-center justify-center">
         <img src={logo} alt="logo" />
       </div>
       <div className="w-full bg-mirage text-white font-outfit p-6 rounded-[10px] max-h-[520px] max-w-[400px] m-auto">
         <h2 className="text-[32px] pb-[40px]">Signup</h2>
-        <form action="submit" className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>
             <input
               name="fullname"
@@ -18,16 +60,18 @@ export default function LoginPage() {
               placeholder="Full Name"
               required
               className="input"
+              onChange={e => setFullName(e.target.value)}
             />
           </div>
           <div>
             <input
               name="email"
               id="email"
-              type="text"
+              type="email"
               placeholder="Email address"
               required
               className="input"
+              onChange={e => setEmail(e.target.value)}
             />
           </div>
           <div>
@@ -38,18 +82,21 @@ export default function LoginPage() {
               placeholder="Password"
               required
               className="input"
+              onChange={e => setPassword(e.target.value)}
             />
           </div>
           <div>
             <input
-              name="password"
-              id="password"
+              name="repeatPassword"
+              id="repeatPassword"
               type="password"
               placeholder="Repeat Password"
               required
               className="input"
+              onChange={e => setRepeatPassword(e.target.value)}
             />
           </div>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
           <button
             type="submit"
             className="bg-orange h-12 rounded-md text-[15px]"
