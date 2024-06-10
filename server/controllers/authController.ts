@@ -6,6 +6,7 @@ import passport from "passport";
 
 export const signup = async (req: Request, res: Response) => {
     try {
+        console.log("Signup route called");
         await connectDB();
 
         let user = await User.findOne({ email: req.body.email });
@@ -35,9 +36,9 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
-
-    await connectDB();
     console.log("Login route called");
+    await connectDB();
+    
     passport.authenticate('local', (err: Error | null, user: any, info: any) => {
         if (err) {
             return next(err);
@@ -49,7 +50,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             if (err) {
                 return next(err);
             }
-            return res.status(200).json({ message: "Login successful" });
+            return res.status(200).json({ message: "Login successful", user });
         });
     })(req, res, next);
 };

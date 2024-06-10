@@ -6,15 +6,17 @@ import MoviesPage from "../pages/Movies";
 import TVSeriesPage from "../pages/TV_Series";
 import BookmarkPage from "../pages/Bookmark";
 import { ReactNode } from "react";
+import PublicRoute from "./PublicRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 const ProjectRoutes = () => {
     const element: ReactNode  = useRoutes([
-        { path: "/", element: <HomePage />},
-        { path: "/login", element: <LoginPage />},
-        { path: "/signup", element: <SignupPage />},
-        { path: "/movies", element: <MoviesPage />},
-        { path: "/tv-series", element: <TVSeriesPage />},
-        { path: "/bookmark", element: <BookmarkPage />}
+        { path: "/", element: <ProtectedRoute element={<HomePage />} />},
+        { path: "/login", element: <PublicRoute element={<LoginPage />} />},
+        { path: "/signup", element: <PublicRoute element={<SignupPage />} />},
+        { path: "/movies", element: <ProtectedRoute element={<MoviesPage />} />},
+        { path: "/tv-series", element: <ProtectedRoute element={<TVSeriesPage />} />},
+        { path: "/bookmark", element: <ProtectedRoute element={<BookmarkPage />} />}
     ])
 
     return element;
