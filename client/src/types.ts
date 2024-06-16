@@ -33,4 +33,14 @@ export interface Thumbnail {
     isBookmarked: boolean;
     isTrending: boolean;
   }
+
+  export interface Movie {
+    id: number;
+    title: string;
+    release_date: string;
+    media_type: string;
+    poster_path: string;
+    vote_average: number;
+    isBookmarked: boolean;
+  }
   
