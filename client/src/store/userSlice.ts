@@ -14,6 +14,10 @@ const initialState : UserState = {
     watchedMovies: []
 };
 
+interface RootState {
+    user: UserState;
+}
+
 const userSlice = createSlice({
     name: "user",
     initialState,

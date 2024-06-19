@@ -6,6 +6,6 @@
 
 @layer components{
     .input{
-        @apply w-full bg-transparent border-b-[1px] border-solid border-gray outline-none pb-4 pl-4  hover:border-white hover:cursor-pointer
+        @apply w-full bg-transparent border-b-[1px] border-solid border-greyish-blue outline-none pb-4 pl-4  hover:border-white hover:cursor-pointer
     }
 }

@@ -12,7 +12,7 @@ export const signup = async (req: Request, res: Response) => {
         let user = await User.findOne({ email: req.body.email });
 
         if (user) {
-            return res.status(400).send("User already exists. Please login");
+            return res.status(400).send({message: "User already exists. Please login"});
         }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -24,14 +24,14 @@ export const signup = async (req: Request, res: Response) => {
             password: hashedPassword
         });
 
-        await newUser.save();
+        const savedUser = await newUser.save();
         console.log("User saved successfully");
-
-        return res.status(201).json({ message: "User registered successfully" });
+        const {password , ...userWithoutPassword} = savedUser.toObject();
+        return res.status(201).send({ message: "User registered successfully", user: userWithoutPassword });
 
     } catch (err) {
         console.error("Error during signup:", err);
-        return res.status(500).json({ message: "Server error" });
+        return res.status(500).send({ message: "Server error" });
     }
 };
 

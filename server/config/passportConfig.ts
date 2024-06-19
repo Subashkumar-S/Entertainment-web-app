@@ -14,7 +14,7 @@ passport.use(new LocalStrategy({
 
         if (!user) {
             console.log('User not found:', email);
-            return done(null, false);
+            return done(null, false, {message: "Email not found"});
         }
 
         console.log("Retrieved password from database:", user.password);
@@ -23,7 +23,7 @@ passport.use(new LocalStrategy({
 
         if (!passwordMatch) {
             console.log('Incorrect password for user:', email);
-            return done(null, false);
+            return done(null, false, {message: "Incorrect password"});
         }
 
         console.log('User authenticated:', email);

@@ -18,24 +18,24 @@ export const TrendingWrapper: React.FC = () => {
   useEffect(() => {
     const fetchTrendingMovies = async () => {
       try {
-        const response = await axios.get(`https://api.themoviedb.org/3/trending/movie/week`, {
+        const response = await axios.get(`https://api.themoviedb.org/3/trending/all/week`, {
           params: {
-            api_key: "5c0e86122f0d1ef418aefff0baafc6dd"
+            api_key: import.meta.env.VITE_APP_API_KEY
           },
         });
-
-        const movies = response.data.results.map((movie: any) => ({
-          id: movie.id,
-          title: movie.title,
-          release_date: movie.release_date,
-          media_type: movie.media_type,
-          poster_path: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-          vote_average: movie.vote_average,
+        console.log(response);
+        const movies = response.data.results.map((item: any) => ({
+          id: item.id,
+          title: item.original_name || item.original_title,
+          release_date: item.first_air_date || item.release_date,
+          media_type: item.media_type,
+          poster_path: `https://image.tmdb.org/t/p/w500${item.backdrop_path}`,
+          vote_average: item.vote_average,
           isBookmarked: false, 
         }));
 
         setTrendingMovies(movies);
-        console.log(trendingMovies)
+        
       } catch (error) {
         console.error('Failed to fetch trending movies', error);
       }
