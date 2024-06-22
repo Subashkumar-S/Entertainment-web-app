@@ -56,8 +56,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
-    req.logout((err) => {
-        if(err) res.status(500).json({message: "Error logging out"});
-        res.json({ message: "Logged out successfully"})
-    })
-}
+    if (req.isAuthenticated()) {
+        req.logout((err) => {
+            if (err) {
+                return next(err);
+            }
+            req.session.destroy((err) => {
+                if (err) {
+                    return next(err);
+                }
+                res.clearCookie('connect.sid');
+                res.status(200).json({ message: "Logged out successfully" });
+            });
+        });
+    } else {
+        res.status(400).json({ message: "User is not logged in" });
+    }
+};

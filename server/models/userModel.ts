@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   favorites: string[];
+  watchedMovies: string[];
 }
 
 
@@ -27,6 +28,10 @@ const userSchema: Schema<IUser> = new Schema({
     type: [String],
     default: []
   },
+  watchedMovies: {
+    type: [String],
+    default: []
+  }
 });
 
 const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);

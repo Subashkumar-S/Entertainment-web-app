@@ -2,8 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { logo } from "../../assets";
-import { setUser } from "../../store/userSlice";
-import { useDispatch } from "react-redux";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -11,11 +9,23 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string>("");
+  const [submit, setSubmit] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!fullName || !email || !password) {
+      setSubmit(true);
+      setError("Enter all fields");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Invalid email format");
+      return;
+    }
 
     if (password !== repeatPassword) {
       setError("Passwords do not match");
@@ -30,9 +40,7 @@ export default function SignupPage() {
       );
 
       if (response.status === 201) {
-        const { user } = response.data;
-        dispatch(setUser(user));
-        navigate("/");
+        navigate("/login");
       }
     } catch (err: unknown) {
       if (!axios.isAxiosError(err) || !err.response || !err.response.data) {
@@ -57,11 +65,11 @@ export default function SignupPage() {
               id="fullname"
               type="text"
               placeholder="Full Name"
-              required
+              // required
               className="input"
               onChange={(e) => setFullName(e.target.value)}
             />
-            {!fullName && (
+            {!fullName && submit && (
               <p className="text-red text-sm -ml-28">Can't be empty</p>
             )}
           </div>
@@ -71,11 +79,11 @@ export default function SignupPage() {
               id="email"
               type="email"
               placeholder="Email address"
-              required
+              // required
               className="input"
               onChange={(e) => setEmail(e.target.value)}
             />
-            {!email && (
+            {!email && submit && (
               <p className="text-red text-sm -ml-28">Can't be empty</p>
             )}
           </div>
@@ -85,11 +93,11 @@ export default function SignupPage() {
               id="password"
               type="password"
               placeholder="Password"
-              required
+              // required
               className="input"
               onChange={(e) => setPassword(e.target.value)}
             />
-            {!password && (
+            {!password && submit && (
               <p className="text-red text-sm -ml-28">Can't be empty</p>
             )}
           </div>
@@ -99,20 +107,23 @@ export default function SignupPage() {
               id="repeatPassword"
               type="password"
               placeholder="Repeat Password"
-              required
+              // required
               className="input"
               onChange={(e) => setRepeatPassword(e.target.value)}
             />
-            {!repeatPassword && (
+            {!repeatPassword && submit && (
               <p className="text-red text-sm -ml-28">Can't be empty</p>
             )}
           </div>
-          {error && <p className=" text-center text-red">{error}</p>}
-          <button type="submit" className="bg-red h-12 rounded-md text-[15px]">
+          <button
+            type="submit"
+            className="bg-red h-12 rounded-md text-[15px] hover:bg-white hover:text-semi-dark-blue"
+          >
             Create an account
           </button>
         </form>
-        <p className="pt-6 w-full text-[15px] text-center">
+        {error && <p className="pt-4 text-center text-red">{error}</p>}
+        <p className="pt-4 w-full text-[15px] text-center">
           Already have an account?
           <Link to="/login" className="text-red pl-2">
             Login

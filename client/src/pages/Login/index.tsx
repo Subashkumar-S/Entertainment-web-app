@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { logo } from "../../assets";
+import logo from "../../assets/logo.svg";
 import { useState } from "react";
 import axios from "axios";
 import { setUser } from "../../store/userSlice";
@@ -9,11 +9,18 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [serverError, setServerError] = useState("");
+    const [submit, setSubmit] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if(!email || !password){
+            setSubmit(true);
+            setServerError("Enter all fields");
+            return;
+        }
 
         setServerError("");
 
@@ -21,11 +28,12 @@ export default function LoginPage() {
             const response = await axios.post("http://localhost:5000/api/auth/login", { email, password });
 
             if (response.status === 200) {
-                dispatch(setUser(response.data.user));
+                const { fullName, email, favorites, watchedMovies } = response.data.user
+                dispatch(setUser({ fullName, email, favorites, watchedMovies }));
                 navigate("/");
             } 
 
-        } catch (error ) {
+        } catch (error : any) {
             if(!error.response || !error.response.data){
                 setServerError("An unexpected error occurred. Please try again later.");
                 return;
@@ -48,11 +56,10 @@ export default function LoginPage() {
                             id="email"
                             type="text"
                             placeholder="Email address"
-                            required
                             className={`input`}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        {!email && <p className="text-red text-sm -ml-28">Can't be empty</p>}
+                        {!email && submit && <p className="text-red text-sm -ml-28">Can't be empty</p>}
                     </div>
                     <div className="flex">
                         <input
@@ -60,11 +67,10 @@ export default function LoginPage() {
                             id="password"
                             type="password"
                             placeholder="Password"
-                            required
                             className={`input`}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        {!password && <p className="text-red text-sm -ml-28">Can't be empty</p>}
+                        {!password && submit &&<p className="text-red text-sm -ml-28">Can't be empty</p>}
                     </div>
                     <button type="submit" className="bg-red h-12 rounded-md text-[15px] hover:bg-white hover:text-semi-dark-blue">
                         Login to your account

@@ -3,40 +3,42 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 interface UserState {
     fullName: string;
     email: string;
-    bookmarkedMovies: string[];
+    favorites: string[];
     watchedMovies: string[];
 }
 
 const initialState : UserState = {
     fullName: '',
     email: '',
-    bookmarkedMovies: [],
+    favorites: [],
     watchedMovies: []
 };
 
-interface RootState {
-    user: UserState;
-}
+// interface RootState {
+//     user: UserState;
+// }
 
 const userSlice = createSlice({
     name: "user",
     initialState,
     reducers: {
-        setUser(state, action: PayloadAction<{fullName: string, email: string}>){
+        setUser(state, action: PayloadAction<{fullName: string, email: string, favorites: string[], watchedMovies: string[]}>){
             state.fullName = action.payload.fullName;
             state.email = action.payload.email;
+            state.favorites = action.payload.favorites;
+            state.watchedMovies = action.payload.watchedMovies;
         },
         removeUser(state){
             state.fullName = '';
             state.email = '';
-            state.bookmarkedMovies = [];
+            state.favorites = [];
             state.watchedMovies = [];
         },
-        addBookmark(state, action : PayloadAction<string>){
-            state.bookmarkedMovies.push(action.payload);
+        addFavorites(state, action : PayloadAction<string>){
+            state.favorites.push(action.payload);
         },
-        removeBookmark(state, action: PayloadAction<string>){
-            state.bookmarkedMovies = state.bookmarkedMovies.filter(movie => movie !== action.payload);
+        removeFavorites(state, action: PayloadAction<string>){
+            state.favorites = state.favorites.filter(movie => movie !== action.payload);
         },
         addWatchedMovies(state, action: PayloadAction<string>){
             state.watchedMovies.push(action.payload);
@@ -44,6 +46,6 @@ const userSlice = createSlice({
     }
 });
 
-export const {setUser, removeUser, addBookmark, removeBookmark, addWatchedMovies} = userSlice.actions;
+export const {setUser, removeUser, addFavorites, removeFavorites, addWatchedMovies} = userSlice.actions;
 
 export default userSlice.reducer;

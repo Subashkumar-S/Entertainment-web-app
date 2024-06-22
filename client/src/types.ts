@@ -1,46 +1,12 @@
-// types.ts
-
-export interface Thumbnail {
-    small: string;
-    large: string;
-  }
-  
-  export interface RegularThumbnail {
-    small: string;
-    medium: string;
-    large: string;
-  }
-  
-  export interface TrendingDataItem {
-    title: string;
-    thumbnail: {
-      regular: RegularThumbnail;
-      trending: Thumbnail;
-    };
-    year: number;
-    category: string;
-    rating: string;
-    isBookmarked: boolean;
-    isTrending: boolean;
-  }
-
-  export interface RegularDataItem {
-    title: string;
-    thumbnail: string;
-    year: number;
-    category: string;
-    rating: string;
-    isBookmarked: boolean;
-    isTrending: boolean;
-  }
-
-  export interface Movie {
-    id: number;
-    title: string;
-    release_date: string;
-    media_type: string;
-    poster_path: string;
-    vote_average: number;
-    isBookmarked: boolean;
-  }
-  
+export interface RegularDataItem {
+  id: string;
+  original_name?: string;
+  original_title?: string;
+  first_air_date?: string;
+  release_date?: string;
+  backdrop_path?: string;
+  poster_path?: string;
+  vote_average: number;
+  category: string;
+  media_type: 'movie' | 'tv'; 
+}

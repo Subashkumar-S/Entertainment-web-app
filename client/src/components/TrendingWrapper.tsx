@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { TrendingCard } from "./TrendingCard";
-
-interface Movie {
-  id: number;
-  title: string;
-  release_date: string;
-  media_type: string;
-  poster_path: string;
-  vote_average: number;
-  isBookmarked: boolean;
-}
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { RegularDataItem } from '../types';
 
 export const TrendingWrapper: React.FC = () => {
-  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
+  const [trendingMovies, setTrendingMovies] = useState<RegularDataItem[]>([]);
+  const bookmarkedMovies = useSelector((state: RootState) => state.user.favorites);
 
   useEffect(() => {
     const fetchTrendingMovies = async () => {
@@ -23,19 +17,28 @@ export const TrendingWrapper: React.FC = () => {
             api_key: import.meta.env.VITE_APP_API_KEY
           },
         });
-        console.log(response);
-        const movies = response.data.results.map((item: any) => ({
-          id: item.id,
-          title: item.original_name || item.original_title,
-          release_date: item.first_air_date || item.release_date,
-          media_type: item.media_type,
-          poster_path: `https://image.tmdb.org/t/p/w500${item.backdrop_path}`,
-          vote_average: item.vote_average,
-          isBookmarked: false, 
-        }));
+
+        const movies: RegularDataItem[] = response.data.results.map((item : RegularDataItem) => {
+          const thumbnail = item.backdrop_path
+            ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}`
+            : item.poster_path
+            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+            : ''; 
+
+          return {
+            id: item.id.toString(),
+            original_name: item.original_name || '',
+            original_title: item.original_title || '',
+            first_air_date: item.first_air_date || '',
+            release_date: item.release_date || '',
+            backdrop_path: item.backdrop_path || '',
+            poster_path: thumbnail,
+            vote_average: typeof item.vote_average === 'number' ? item.vote_average : 0,
+            category: item.media_type === 'movie' ? 'Movie' : 'TV Series',
+          };
+        });
 
         setTrendingMovies(movies);
-        
       } catch (error) {
         console.error('Failed to fetch trending movies', error);
       }
@@ -51,12 +54,17 @@ export const TrendingWrapper: React.FC = () => {
         {trendingMovies.map(movie => (
           <TrendingCard
             key={movie.id}
-            title={movie.title}
-            year={new Date(movie.release_date).getFullYear()}
-            category={movie.media_type}
-            thumbnail={movie.poster_path}
+            id={movie.id}
+            title={movie.original_name || movie.original_title || ""}
+            year={
+              (movie.first_air_date && new Date(movie.first_air_date).getFullYear().toString()) ||
+              (movie.release_date && new Date(movie.release_date).getFullYear().toString()) ||
+              ""
+            }
+            category={movie.category}
+            thumbnail={movie.poster_path || ""}
             rating={movie.vote_average}
-            bookmark={movie.isBookmarked}
+            bookmark={bookmarkedMovies.includes(movie.id)}
           />
         ))}
       </div>
