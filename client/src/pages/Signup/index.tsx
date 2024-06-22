@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
-import { logo } from "../../assets";
+import logo from "/logo.svg";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
