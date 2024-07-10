@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    container_name: ewa-server
+    restart: always
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      MONGODB_URI: mongodb+srv://subashs2232:subash2232@moviescluster.1z2uaqn.mongodb.net/?retryWrites=true&w=majority&appName=MoviesCluster/MoviesDB
+      REDIS_URL: redis://redisdb:6379
+    depends_on:
+      # - mongo
+      - redis 
+    develop:
+      watch: 
+        - path: ./server/package.json
+          action: rebuild
+        - path: ./server/package-lock.json
+          action: rebuild
+        - path: ./server
+          target: /app
+          action: sync
+    networks:
+      - ewa-network
+
+  client:
+    build: ./client
+    container_name: ewa-client
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    stdin_open: true
+    volumes:
+      - ./client:/app
+    depends_on:
+      - server
+    develop:
+      watch: 
+        - path: ./client/package.json
+          action: rebuild
+        - path: ./client/package-lock.json
+          action: rebuild
+        - path: ./client
+          target: /app
+          action: sync
+    networks:
+      - ewa-network
+
+  # mongo:
+  #   image: mongo:latest
+  #   container_name: mongodb
+  #   restart: always
+  #   ports:
+  #     - "127.0.0.1:27017:27017"
+  #   volumes:
+  #     - ./data/mongo:/data/db
+  #   networks:
+  #     - ewa-network
+
+  redis:
+    image: redis:latest
+    container_name: redisdb
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ../data/redis:/data
+    networks:
+      - ewa-network
+
+networks:
+  ewa-network:
+    driver: bridge

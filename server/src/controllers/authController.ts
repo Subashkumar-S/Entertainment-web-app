@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
-import connectDB from "../db";
+import { connectDB, disconnectDB} from "../db";
 import bcrypt from "bcrypt";
 import passport from "passport";
 
@@ -12,6 +12,7 @@ export const signup = async (req: Request, res: Response) => {
         let user = await User.findOne({ email: req.body.email });
 
         if (user) {
+            await disconnectDB();
             return res.status(400).send({message: "User already exists. Please login"});
         }
 
@@ -26,11 +27,15 @@ export const signup = async (req: Request, res: Response) => {
 
         const savedUser = await newUser.save();
         console.log("User saved successfully");
+
+        await disconnectDB();
+
         const {password , ...userWithoutPassword} = savedUser.toObject();
         return res.status(201).send({ message: "User registered successfully", user: userWithoutPassword });
 
     } catch (err) {
         console.error("Error during signup:", err);
+        await disconnectDB();
         return res.status(500).send({ message: "Server error" });
     }
 };
@@ -41,31 +46,44 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     
     passport.authenticate('local', (err: Error | null, user: any, info: any) => {
         if (err) {
+            console.error('Passport authentication error:', err);
+            disconnectDB();
             return next(err);
         }
         if (!user) {
+            console.log('Authentication failed:', info.message);
+            disconnectDB();
             return res.status(400).json({ message: info.message });
         }
         req.logIn(user, (err) => {
             if (err) {
+                console.error('Error during login:', err);
+                disconnectDB();
                 return next(err);
             }
+
+            console.log('User logged in:', user.email);
+            disconnectDB();
             return res.status(200).json({ message: "Login successful", user });
         });
     })(req, res, next);
 };
 
+
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated()) {
         req.logout((err) => {
             if (err) {
+                console.error('Error during logout:', err);
                 return next(err);
             }
             req.session.destroy((err) => {
                 if (err) {
+                    console.error('Error destroying session:', err);
                     return next(err);
                 }
                 res.clearCookie('connect.sid');
+                console.log('User logged out');
                 res.status(200).json({ message: "Logged out successfully" });
             });
         });

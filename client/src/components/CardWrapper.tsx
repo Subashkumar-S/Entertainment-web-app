@@ -14,14 +14,14 @@ export const CardWrapper: React.FC = () => {
   const isTvSeriesPage = location.pathname === "/tv-series";
   const isBookmarkPage = location.pathname === "/bookmark";
 
-  const watchedMovies = useSelector((state: RootState) => state.user.watchedMovies);
+  const favorites = useSelector((state: RootState) => state.user.favorites);
   const bookmarkedItems = useSelector((state: RootState) => state.user.favorites);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (isHomePage && watchedMovies.length > 0) {
-          const watchedMovieId = parseInt(watchedMovies[0]);
+        if (isHomePage && favorites.length > 0) {
+          const watchedMovieId = parseInt(favorites[0]);
 
           const response = await axios.get(
             `https://api.themoviedb.org/3/movie/${watchedMovieId}/recommendations`,
@@ -124,7 +124,7 @@ export const CardWrapper: React.FC = () => {
     };
 
     fetchData();
-  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, watchedMovies, bookmarkedItems]);
+  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites, bookmarkedItems]);
 
   return (
     <div className="w-full py-2">

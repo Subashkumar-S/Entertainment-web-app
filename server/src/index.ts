@@ -7,15 +7,13 @@ import passport from "./config/passportConfig";
 import RedisStore from "connect-redis";
 import redisClient from "./config/redisClient";
 import cors from "cors";
-import connectDB from './db';
 
 dotenv.config();
-connectDB();
 const app = express();
 const PORT = process.env.PORT;
 const sessionStore = new RedisStore({ client: redisClient });
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204

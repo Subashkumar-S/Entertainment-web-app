@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "serve -s dist"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.5",
@@ -32,6 +33,8 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
-  }
+    "vite": "^5.2.0",
+    "serve": "^14.0.1"
+  },
+  "proxy" : "http:ewa-server:5000"
 }

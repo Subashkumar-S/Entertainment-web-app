@@ -52,7 +52,7 @@ export default function Navbar() {
               to="/"
               className={
                 location.pathname === "/"
-                  ? "text-red"
+                  ? "text-white opacity-100"
                   : "text-white opacity-50 hover:opacity-100"
               }
             >
@@ -64,7 +64,7 @@ export default function Navbar() {
               to="/movies"
               className={
                 location.pathname === "/movies"
-                  ? "text-red"
+                  ? "text-white opacity-100"
                   : "text-white opacity-50 hover:opacity-100"
               }
             >
@@ -76,7 +76,7 @@ export default function Navbar() {
               to="/tv-series"
               className={
                 location.pathname === "/tv-series"
-                  ? "text-red"
+                  ? "text-white opacity-100"
                   : "text-white opacity-50 hover:opacity-100"
               }
             >
@@ -88,7 +88,7 @@ export default function Navbar() {
               to="/bookmark"
               className={
                 location.pathname === "/bookmark"
-                  ? "text-red"
+                  ? "text-white opacity-100"
                   : "text-white opacity-50 hover:opacity-100"
               }
             >
