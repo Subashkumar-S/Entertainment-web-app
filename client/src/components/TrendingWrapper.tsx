@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { TrendingCard } from "./TrendingCard";
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -12,11 +12,7 @@ export const TrendingWrapper: React.FC = () => {
   useEffect(() => {
     const fetchTrendingMovies = async () => {
       try {
-        const response = await axios.get(`https://api.themoviedb.org/3/trending/all/week`, {
-          params: {
-            api_key: import.meta.env.VITE_APP_API_KEY
-          },
-        });
+        const response = await api.get(`/tmdb/trending`);
 
         const movies: RegularDataItem[] = response.data.results.map((item : RegularDataItem) => {
           const thumbnail = item.backdrop_path

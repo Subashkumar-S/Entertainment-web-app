@@ -6,7 +6,7 @@
     "start": "node index.js",
     "build": "tsc",
     "serve": "node dist/index.js",
-    "dev": "nodemon --watch . --exec 'ts-node index.ts'"
+    "dev": "nodemon --watch src --ext ts,json --exec \"ts-node src/index.ts\""
   },
   "keywords": [],
   "author": "",
@@ -26,16 +26,21 @@
   },
   "dependencies": {
     "@types/ioredis": "^5.0.0",
+    "axios": "^1.17.0",
     "bcrypt": "^5.1.1",
     "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.5.2",
     "express-session": "^1.18.0",
     "ioredis": "^5.4.1",
     "mongoose": "^8.4.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "rate-limit-redis": "^5.0.0",
     "redis": "^4.6.14"
   }
 }

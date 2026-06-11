@@ -1,18 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
-import { connectDB, disconnectDB} from "../db";
 import bcrypt from "bcrypt";
 import passport from "passport";
 
 export const signup = async (req: Request, res: Response) => {
     try {
         console.log("Signup route called");
-        await connectDB();
 
         let user = await User.findOne({ email: req.body.email });
 
         if (user) {
-            await disconnectDB();
             return res.status(400).send({message: "User already exists. Please login"});
         }
 
@@ -28,47 +25,52 @@ export const signup = async (req: Request, res: Response) => {
         const savedUser = await newUser.save();
         console.log("User saved successfully");
 
-        await disconnectDB();
-
         const {password , ...userWithoutPassword} = savedUser.toObject();
         return res.status(201).send({ message: "User registered successfully", user: userWithoutPassword });
 
     } catch (err) {
         console.error("Error during signup:", err);
-        await disconnectDB();
         return res.status(500).send({ message: "Server error" });
     }
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Login route called");
-    await connectDB();
-    
+
     passport.authenticate('local', (err: Error | null, user: any, info: any) => {
         if (err) {
             console.error('Passport authentication error:', err);
-            disconnectDB();
             return next(err);
         }
         if (!user) {
             console.log('Authentication failed:', info.message);
-            disconnectDB();
             return res.status(400).json({ message: info.message });
         }
         req.logIn(user, (err) => {
             if (err) {
                 console.error('Error during login:', err);
-                disconnectDB();
                 return next(err);
             }
 
             console.log('User logged in:', user.email);
-            disconnectDB();
-            return res.status(200).json({ message: "Login successful", user });
+            const { password, ...safeUser } = user.toObject();
+            return res.status(200).json({ message: "Login successful", user: safeUser });
         });
     })(req, res, next);
 };
 
+
+// Lets the client rehydrate its auth state from the session cookie on load,
+// so a page refresh doesn't lose the logged-in user (and loop back to /login).
+export const me = async (req: Request, res: Response) => {
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+    }
+    const { password, ...safeUser } = (req.user as any).toObject
+        ? (req.user as any).toObject()
+        : (req.user as any);
+    return res.status(200).json({ user: safeUser });
+};
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated()) {

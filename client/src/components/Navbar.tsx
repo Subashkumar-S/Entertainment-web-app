@@ -7,7 +7,7 @@ import { MdLocalMovies } from "react-icons/md";
 import { FaCircleUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function Navbar() {
   const location = useLocation();
@@ -25,13 +25,8 @@ export default function Navbar() {
   };
 
   const handleClick = async () => {
-    const axiosInstance = axios.create({
-      baseURL: "http://localhost:5000/api",
-      withCredentials: true,
-    });
-
     try {
-      const response = await axiosInstance.post("/auth/logout");
+      const response = await api.post("/auth/logout");
       console.log(response.data.message);
       navigate("/login");
     } catch (error : any) {

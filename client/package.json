@@ -35,6 +35,5 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "serve": "^14.0.1"
-  },
-  "proxy" : "http:ewa-server:5000"
+  }
 }

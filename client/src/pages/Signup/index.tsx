@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
+import api from "../../api/axios";
 import logo from "/logo.svg";
 
 export default function SignupPage() {
@@ -34,8 +35,8 @@ export default function SignupPage() {
 
     setError("");
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
+      const response = await api.post(
+        "/auth/signup",
         { fullName, email, password }
       );
 

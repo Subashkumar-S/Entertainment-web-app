@@ -7,8 +7,10 @@ interface ProtectedRoutesProps{
 }
 
 const ProtectedRoute: React.FC<ProtectedRoutesProps> = ({element}) => {
-    const isAuthenticated = useSelector((state: RootState) => state.user.email !== '');
-    return isAuthenticated ? element : <Navigate to="/login" />
+    const status = useSelector((state: RootState) => state.user.status);
+    // Wait for the startup session check before deciding where to send the user.
+    if (status === 'loading') return null;
+    return status === 'authenticated' ? element : <Navigate to="/login" />
 }
 
 export default ProtectedRoute;
