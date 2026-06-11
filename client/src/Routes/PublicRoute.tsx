@@ -7,8 +7,10 @@ interface PublicRoutesProps{
 }
 
 const PublicRoute: React.FC<PublicRoutesProps> = ({element}) => {
-    const isAuthenticated = useSelector((state: RootState) => state.user.email !== '');
-    return isAuthenticated ? <Navigate to="/" /> : element;
+    const status = useSelector((state: RootState) => state.user.status);
+    // Wait for the startup session check so we don't flash the login page.
+    if (status === 'loading') return null;
+    return status === 'authenticated' ? <Navigate to="/" /> : element;
 }
 
 export default PublicRoute;

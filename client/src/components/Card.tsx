@@ -5,7 +5,7 @@ import { FiBookmark } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { addFavorites, removeFavorites } from '../store/userSlice';
-import axios from 'axios';
+import api from '../api/axios';
 
 type CardProps = {
   id: string;
@@ -39,22 +39,14 @@ export const Card: React.FC<CardProps> = ({
     if (favorites.includes(id)) {
       dispatch(removeFavorites(id));
       try {
-        await axios.post(
-          'http://localhost:5000/api/favorites/removeFavorite',
-          { email, id },
-          { withCredentials: true }
-        );
+        await api.post('/favorites/removeFavorite', { email, id });
       } catch (error) {
         console.error('Error removing favorite from the database:', error);
       }
     } else {
       dispatch(addFavorites(id));
       try {
-        await axios.post(
-          'http://localhost:5000/api/favorites/addFavorite',
-          { email, id },
-          { withCredentials: true }
-        );
+        await api.post('/favorites/addFavorite', { email, id });
       } catch (error) {
         console.error('Error adding favorite to the database:', error);
       }

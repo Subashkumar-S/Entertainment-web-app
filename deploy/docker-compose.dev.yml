@@ -1,0 +1,50 @@
+# Local development data stores ONLY: MongoDB + Redis in Docker.
+#
+# Use this when you want to run the server (`npm run dev`) and client
+# (`npm run dev`) natively on your host for fast reloads, while still
+# getting real Mongo/Redis from containers.
+#
+#   cd deploy && docker compose -f docker-compose.dev.yml up -d
+#
+# First (once): copy the repo-root env template and add your secrets:
+#   cp .env.example .env   # at the repo root — fill in SECRET + TMDB_API_KEY
+#
+# Then in two terminals:
+#   cd server && npm run dev
+#   cd client && npm run dev
+#
+# Host-run server/client default to localhost:27017 (Mongo) and localhost:6379
+# (Redis) automatically — no data-store URLs needed in .env for local dev.
+#
+# Data persists to the same ./volumes/ bind mounts and uses the same container
+# names (ewa-mongo / ewa-redis) as the full `docker-compose.yml` stack. Run only
+# ONE of the two stacks at a time — Docker will refuse a duplicate container name.
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: ewa-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./volumes/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ewa-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./volumes/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

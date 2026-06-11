@@ -16,8 +16,6 @@ passport.use(new LocalStrategy({
             return done(null, false, { message: "Email not found" });
         }
 
-        console.log("Retrieved password from database:", user.password);
-
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
@@ -26,7 +24,8 @@ passport.use(new LocalStrategy({
         }
 
         console.log('User authenticated:', email);
-        return done(null, (user as IUser)._id);
+        // Hand Passport the full user document; serializeUser persists its _id.
+        return done(null, user as IUser);
     } catch (err) {
         console.error('Error finding user:', err);
         return done(err);

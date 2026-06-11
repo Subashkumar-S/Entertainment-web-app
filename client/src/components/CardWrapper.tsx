@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "./Card";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { RegularDataItem } from "../types";
@@ -23,15 +23,8 @@ export const CardWrapper: React.FC = () => {
         if (isHomePage && favorites.length > 0) {
           const watchedMovieId = parseInt(favorites[0]);
 
-          const response = await axios.get(
-            `https://api.themoviedb.org/3/movie/${watchedMovieId}/recommendations`,
-            {
-              params: {
-                api_key: import.meta.env.VITE_APP_API_KEY,
-                language: "en-US",
-                page: 1,
-              },
-            }
+          const response = await api.get(
+            `/tmdb/movie/${watchedMovieId}/recommendations`
           );
 
           if (response.data && response.data.results) {
@@ -45,13 +38,7 @@ export const CardWrapper: React.FC = () => {
             console.error("Unexpected recommended movies API response structure:", response);
           }
         } else if (isMoviesPage) {
-          const response = await axios.get("https://api.themoviedb.org/3/movie/popular", {
-            params: {
-              api_key: import.meta.env.VITE_APP_API_KEY,
-              language: "en-US",
-              page: 1,
-            },
-          });
+          const response = await api.get("/tmdb/movies/popular");
 
           if (response.data && response.data.results) {
             setMovies(
@@ -64,13 +51,7 @@ export const CardWrapper: React.FC = () => {
             console.error("Unexpected Movies API response structure:", response);
           }
         } else if (isTvSeriesPage) {
-          const response = await axios.get("https://api.themoviedb.org/3/tv/popular", {
-            params: {
-              api_key: import.meta.env.VITE_APP_API_KEY,
-              language: "en-US",
-              page: 1,
-            },
-          });
+          const response = await api.get("/tmdb/tv/popular");
 
           if (response.data && response.data.results) {
             setMovies(
@@ -84,26 +65,16 @@ export const CardWrapper: React.FC = () => {
           }
         } else if (isBookmarkPage && bookmarkedItems.length > 0) {
           const movieDetailsPromises = bookmarkedItems.map((id) =>
-            axios
-              .get(`https://api.themoviedb.org/3/movie/${id}`, {
-                params: {
-                  api_key: import.meta.env.VITE_APP_API_KEY,
-                  language: "en-US",
-                },
-              })
+            api
+              .get(`/tmdb/movie/${id}`)
               .then((response) => ({
                 ...response.data,
                 category: "movie",
               }))
               .catch((error) => {
                 console.error("Error fetching movie details:", error);
-                return axios
-                  .get(`https://api.themoviedb.org/3/tv/${id}`, {
-                    params: {
-                      api_key: import.meta.env.VITE_APP_API_KEY,
-                      language: "en-US",
-                    },
-                  })
+                return api
+                  .get(`/tmdb/tv/${id}`)
                   .then((response) => ({
                     ...response.data,
                     category: "tv",

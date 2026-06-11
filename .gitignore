@@ -11,7 +11,17 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Environment variables — never commit real secrets.
+# Only the committed *.env.example templates are tracked.
+.env
+.env.*
 *.env
+!.env.example
+
+# Docker bind-mount data (MongoDB / Redis) — keep the folder layout, not the data.
+deploy/volumes/*/*
+!deploy/volumes/*/.gitkeep
 
 # Editor directories and files
 .vscode/*

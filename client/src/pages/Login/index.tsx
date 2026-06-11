@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import logo from "/logo.svg";
 import { useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { setUser } from "../../store/userSlice";
 import { useDispatch } from "react-redux";
 
@@ -25,7 +25,7 @@ export default function LoginPage() {
         setServerError("");
 
         try {
-            const response = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+            const response = await api.post("/auth/login", { email, password });
 
             if (response.status === 200) {
                 const { fullName, email, favorites, watchedMovies } = response.data.user

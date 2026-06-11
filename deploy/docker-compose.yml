@@ -1,0 +1,112 @@
+# Local development stack: client + server + MongoDB + Redis, all in Docker.
+#
+# Run from THIS directory so Compose resolves paths and the env file correctly:
+#     cd deploy && docker compose up --build
+#
+# Variables come from the single repo-root `.env` (./.env here is a symlink to
+# ../.env). Build contexts (`../server`, `../client`) point back at the repo root.
+#
+# MongoDB and Redis persist to host-side bind mounts under `./volumes/` so the
+# data lives alongside this compose file and survives `docker compose down`.
+#
+# Data-store URLs are env-configurable:
+#   - Local (default): the bundled `mongo` and `redis` services below.
+#   - Production: override MONGODB_URI / REDIS_URL to point at cloud
+#     MongoDB Atlas and a managed Redis (Upstash, Render, etc.) — no
+#     compose or code change needed.
+
+services:
+  server:
+    build: ../server
+    container_name: ewa-server
+    restart: always
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      PORT: "${PORT:-5000}"
+      # Local defaults point at the mongo/redis containers below.
+      # Override in production to use cloud MongoDB Atlas + managed Redis.
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/entertainment}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      # No default — Compose refuses to start if these are unset.
+      SECRET: "${SECRET:?SECRET is required - set it in ./.env}"
+      TMDB_API_KEY: "${TMDB_API_KEY:?TMDB_API_KEY is required - set it in ./.env}"
+      CLIENT_ORIGIN: "${CLIENT_ORIGIN:-http://localhost:3000}"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    develop:
+      watch:
+        - path: ../server/package.json
+          action: rebuild
+        - path: ../server/package-lock.json
+          action: rebuild
+        - path: ../server
+          target: /app
+          action: sync
+    networks:
+      - ewa-network
+
+  client:
+    build: ../client
+    container_name: ewa-client
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    stdin_open: true
+    environment:
+      # Used by the client once TMDB/API calls are routed through the backend.
+      VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
+    volumes:
+      - ../client:/app
+    depends_on:
+      - server
+    develop:
+      watch:
+        - path: ../client/package.json
+          action: rebuild
+        - path: ../client/package-lock.json
+          action: rebuild
+        - path: ../client
+          target: /app
+          action: sync
+    networks:
+      - ewa-network
+
+  mongo:
+    image: mongo:7
+    container_name: ewa-mongo
+    restart: always
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./volumes/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ewa-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ewa-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./volumes/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ewa-network
+
+networks:
+  ewa-network:
+    driver: bridge
