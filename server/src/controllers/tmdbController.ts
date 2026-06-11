@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { cached } from "../utils/cache";
 import * as tmdb from "../services/tmdbService";
-import { normalizeTitle } from "../utils/normalizeTitle";
+import { normalizeTitle, pickTrailer } from "../utils/normalizeTitle";
 import logger from "../config/logger";
 
 const HOUR = 3600;
@@ -95,4 +95,17 @@ export const titleDetails = (req: Request, res: Response) => {
     return proxy(res, `tmdb:title:${mediaType}:${id}`, DAY, async () =>
         normalizeTitle(mediaType, await tmdb.getTitleDetails(mediaType, id))
     );
+};
+
+// Lightweight endpoint so a "Play" button can fetch just the trailer key
+// without pulling the whole details payload.
+export const titleVideos = (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:videos:${mediaType}:${id}`, DAY, async () => {
+        const data = await tmdb.getVideos(mediaType, id);
+        return { trailerKey: pickTrailer(data.results ?? []) };
+    });
 };

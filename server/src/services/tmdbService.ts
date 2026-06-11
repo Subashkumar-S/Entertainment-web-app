@@ -42,6 +42,11 @@ export const getTv = async (id: string) => {
     return data;
 };
 
+export const getVideos = async (mediaType: "movie" | "tv", id: string) => {
+    const { data } = await tmdb.get(`/${mediaType}/${id}/videos`);
+    return data;
+};
+
 // Full detail payload for the details page: one request that also pulls credits,
 // videos, images, recommendations/similar, watch providers, and certification.
 export const getTitleDetails = async (mediaType: "movie" | "tv", id: string) => {

@@ -5,6 +5,7 @@ import { FaBookmark, FaPlay, FaChevronLeft } from "react-icons/fa";
 import { FiBookmark } from "react-icons/fi";
 import Navbar from "../../components/Navbar";
 import { Card } from "../../components/Card";
+import { useTrailer } from "../../components/TrailerModal";
 import api from "../../api/axios";
 import { RootState } from "../../store/store";
 import { addFavorites, removeFavorites } from "../../store/userSlice";
@@ -105,6 +106,8 @@ function Details({
   onBack: () => void;
   favorites: string[];
 }) {
+  const { play } = useTrailer();
+
   const meta: string[] = [
     data.year,
     data.mediaType === "tv" ? "TV Series" : "Movie",
@@ -189,15 +192,13 @@ function Details({
 
             <div className="flex flex-wrap items-center gap-3 mt-5">
               {data.trailerKey && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${data.trailerKey}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => play(data.mediaType, data.id, data.title)}
                   className="flex items-center gap-2 bg-red rounded-full px-5 py-2 text-white hover:opacity-90"
                 >
                   <FaPlay className="w-3 h-3" />
                   Watch Trailer
-                </a>
+                </button>
               )}
               <button
                 onClick={onToggleBookmark}

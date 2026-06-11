@@ -64,7 +64,7 @@ const normalizeCard = (item: any): NormalizedCard => {
     };
 };
 
-const pickTrailer = (videos: any[]): string | null => {
+export const pickTrailer = (videos: any[]): string | null => {
     const yt = videos.filter((v) => v.site === "YouTube");
     const trailer =
         yt.find((v) => v.type === "Trailer" && v.official) ||

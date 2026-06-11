@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
 import { addFavorites, removeFavorites } from '../store/userSlice';
 import { MediaType } from '../types';
+import { useTrailer } from './TrailerModal';
 import api from '../api/axios';
 
 type CardProps = {
@@ -32,6 +33,7 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { play } = useTrailer();
   const favorites = useSelector((state: RootState) => state.user.favorites);
   const email = useSelector((state: RootState) => state.user.email);
 
@@ -84,10 +86,16 @@ export const Card: React.FC<CardProps> = ({
           )}
         </button>
         <div className="absolute z-10 inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-white bg-opacity-30 rounded-full p-2 flex items-center justify-center px-4 gap-2 text-white font-outfit">
+          <button
+            className="bg-white bg-opacity-30 hover:bg-opacity-40 rounded-full p-2 flex items-center justify-center px-4 gap-2 text-white font-outfit"
+            onClick={(e) => {
+              e.stopPropagation();
+              play(mediaType, id, title);
+            }}
+          >
             <FaPlay className="w-6 h-6" />
             <p className="text-sm md:text-lg">Play</p>
-          </div>
+          </button>
         </div>
       </div>
       <div className="pt-2 text-white text-[11px] md:text-[13px] font-light">
