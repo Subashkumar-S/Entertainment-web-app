@@ -8,6 +8,7 @@ import LibraryActions from "../../components/LibraryActions";
 import { useTrailer } from "../../components/TrailerModal";
 import api from "../../api/axios";
 import { RootState } from "../../store/store";
+import { recordRecentlyViewed } from "../../utils/recentlyViewed";
 import { SeasonSummary, TitleDetailsData } from "../../types";
 
 const formatRuntime = (mins: number) => {
@@ -34,8 +35,18 @@ export default function TitleDetailsPage() {
       .get(`/tmdb/title/${mediaType}/${id}`)
       .then((res) => {
         if (active) {
-          setData(res.data);
+          const t: TitleDetailsData = res.data;
+          setData(t);
           setLoading(false);
+          recordRecentlyViewed({
+            id: t.id,
+            mediaType: t.mediaType,
+            title: t.title,
+            year: t.year,
+            rating: t.rating,
+            posterPath: t.posterPath,
+            backdropPath: t.backdropPath,
+          });
         }
       })
       .catch(() => {
@@ -342,21 +353,32 @@ function WhereToWatch({ providers }: { providers: TitleDetailsData["providers"] 
           <div key={g.label} className="flex items-center gap-4">
             <span className="text-greyish-blue text-sm w-16 shrink-0">{g.label}</span>
             <div className="flex flex-wrap gap-3">
-              {g.items.map((p) =>
-                p.logoPath ? (
+              {g.items.map((p) => {
+                const logo = p.logoPath ? (
                   <img
-                    key={p.name}
                     src={p.logoPath}
                     alt={p.name}
                     title={p.name}
                     className="w-10 h-10 rounded-lg"
                   />
                 ) : (
-                  <span key={p.name} className="text-white text-xs">
-                    {p.name}
-                  </span>
-                )
-              )}
+                  <span className="text-white text-xs">{p.name}</span>
+                );
+                return providers.link ? (
+                  <a
+                    key={p.name}
+                    href={providers.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`${p.name} — via JustWatch`}
+                    className="hover:opacity-80"
+                  >
+                    {logo}
+                  </a>
+                ) : (
+                  <span key={p.name}>{logo}</span>
+                );
+              })}
             </div>
           </div>
         ))}

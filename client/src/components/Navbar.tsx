@@ -5,14 +5,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RiTvFill } from "react-icons/ri";
 import { MdLocalMovies } from "react-icons/md";
 import { FaCircleUser } from "react-icons/fa6";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
+import { removeUser } from "../store/userSlice";
+import { clearRecentlyViewed } from "../utils/recentlyViewed";
 import api from "../api/axios";
 
 export default function Navbar() {
   const location = useLocation();
   const [showContextMenu, setShowContextMenu] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.user);
 
@@ -28,6 +31,8 @@ export default function Navbar() {
     try {
       const response = await api.post("/auth/logout");
       console.log(response.data.message);
+      dispatch(removeUser());
+      clearRecentlyViewed();
       navigate("/login");
     } catch (error : any) {
       console.error(
