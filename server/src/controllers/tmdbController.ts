@@ -73,3 +73,15 @@ export const movieRecommendations = (req: Request, res: Response) => {
         tmdb.getMovieRecommendations(req.params.id, page)
     );
 };
+
+export const tvRecommendations = (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:tv:${req.params.id}:recs:p${page}`, 6 * HOUR, () =>
+        tmdb.getTvRecommendations(req.params.id, page)
+    );
+};
+
+export const recommended = (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:recommended:p${page}`, HOUR, () => tmdb.getRecommendedFeed(page));
+};

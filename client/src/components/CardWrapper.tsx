@@ -6,8 +6,65 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { RegularDataItem } from "../types";
 
+type MediaType = "movie" | "tv";
+
+// Tag raw TMDB results with a known media_type so the card shows the right
+// icon/label (and, later, links to the correct details route). Results that
+// already carry a media_type (e.g. the blended /recommended feed) keep theirs.
+const tag = (results: RegularDataItem[], mediaType: MediaType): RegularDataItem[] =>
+  results.map((item) => ({ ...item, media_type: (item.media_type as MediaType) || mediaType }));
+
+const dedupeById = (items: RegularDataItem[]): RegularDataItem[] => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = String(item.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
+// Favorites don't store a media_type yet, so personalize off the most recent
+// bookmark by trying movie recommendations first, then tv. Empty if neither hits.
+const fetchSeedRecommendations = async (id: string): Promise<RegularDataItem[]> => {
+  try {
+    const { data } = await api.get(`/tmdb/movie/${id}/recommendations`);
+    if (data?.results?.length) return tag(data.results, "movie");
+  } catch {
+    /* fall through to tv */
+  }
+  try {
+    const { data } = await api.get(`/tmdb/tv/${id}/recommendations`);
+    if (data?.results?.length) return tag(data.results, "tv");
+  } catch {
+    /* no recommendations for this seed */
+  }
+  return [];
+};
+
+// Resolve each bookmarked id to its full detail (movie first, tv fallback).
+const fetchBookmarkedItems = async (ids: string[]): Promise<RegularDataItem[]> => {
+  if (ids.length === 0) return [];
+  const items = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const { data } = await api.get(`/tmdb/movie/${id}`);
+        return { ...data, media_type: "movie" } as RegularDataItem;
+      } catch {
+        try {
+          const { data } = await api.get(`/tmdb/tv/${id}`);
+          return { ...data, media_type: "tv" } as RegularDataItem;
+        } catch {
+          return null;
+        }
+      }
+    })
+  );
+  return items.filter((item): item is RegularDataItem => item !== null);
+};
+
 export const CardWrapper: React.FC = () => {
-  const [movies, setMovies] = useState<RegularDataItem[]>([]);
+  const [items, setItems] = useState<RegularDataItem[]>([]);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const isMoviesPage = location.pathname === "/movies";
@@ -15,79 +72,30 @@ export const CardWrapper: React.FC = () => {
   const isBookmarkPage = location.pathname === "/bookmark";
 
   const favorites = useSelector((state: RootState) => state.user.favorites);
-  const bookmarkedItems = useSelector((state: RootState) => state.user.favorites);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (isHomePage && favorites.length > 0) {
-          const watchedMovieId = parseInt(favorites[0]);
+        if (isHomePage) {
+          // Always load the blended popular feed so the row is never empty,
+          // then prepend personalized picks when the user has bookmarks.
+          const recommendedReq = api.get("/tmdb/recommended");
 
-          const response = await api.get(
-            `/tmdb/movie/${watchedMovieId}/recommendations`
-          );
-
-          if (response.data && response.data.results) {
-            setMovies(
-              response.data.results.map((movie: RegularDataItem) => ({
-                ...movie,
-                category: "movie",
-              }))
-            );
-          } else {
-            console.error("Unexpected recommended movies API response structure:", response);
+          let personalized: RegularDataItem[] = [];
+          if (favorites.length > 0) {
+            personalized = await fetchSeedRecommendations(favorites[favorites.length - 1]);
           }
+
+          const recommended: RegularDataItem[] = (await recommendedReq).data?.results ?? [];
+          setItems(dedupeById([...personalized, ...recommended]));
         } else if (isMoviesPage) {
-          const response = await api.get("/tmdb/movies/popular");
-
-          if (response.data && response.data.results) {
-            setMovies(
-              response.data.results.map((movie: RegularDataItem) => ({
-                ...movie,
-                category: "movie",
-              }))
-            );
-          } else {
-            console.error("Unexpected Movies API response structure:", response);
-          }
+          const { data } = await api.get("/tmdb/movies/popular");
+          setItems(tag(data?.results ?? [], "movie"));
         } else if (isTvSeriesPage) {
-          const response = await api.get("/tmdb/tv/popular");
-
-          if (response.data && response.data.results) {
-            setMovies(
-              response.data.results.map((tvSeries: RegularDataItem) => ({
-                ...tvSeries,
-                category: "tv",
-              }))
-            );
-          } else {
-            console.error("Unexpected TV Series API response structure:", response);
-          }
-        } else if (isBookmarkPage && bookmarkedItems.length > 0) {
-          const movieDetailsPromises = bookmarkedItems.map((id) =>
-            api
-              .get(`/tmdb/movie/${id}`)
-              .then((response) => ({
-                ...response.data,
-                category: "movie",
-              }))
-              .catch((error) => {
-                console.error("Error fetching movie details:", error);
-                return api
-                  .get(`/tmdb/tv/${id}`)
-                  .then((response) => ({
-                    ...response.data,
-                    category: "tv",
-                  }))
-                  .catch((error) => {
-                    console.error("Error fetching TV series details:", error);
-                    return null; // Handle if necessary
-                  });
-              })
-          );
-
-          const movieDetailsResponses = await Promise.all(movieDetailsPromises);
-          setMovies(movieDetailsResponses.filter((item) => item !== null) as RegularDataItem[]);
+          const { data } = await api.get("/tmdb/tv/popular");
+          setItems(tag(data?.results ?? [], "tv"));
+        } else if (isBookmarkPage) {
+          setItems(await fetchBookmarkedItems(favorites));
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -95,7 +103,7 @@ export const CardWrapper: React.FC = () => {
     };
 
     fetchData();
-  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites, bookmarkedItems]);
+  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites]);
 
   return (
     <div className="w-full py-2">
@@ -106,24 +114,24 @@ export const CardWrapper: React.FC = () => {
         {isBookmarkPage && "Bookmarks"}
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-24">
-        {movies.map((movie) => (
-          <Card
-            key={movie.id.toString()}
-            id={movie.id.toString()}
-            title={movie.original_name || movie.original_title || ""}
-            year={
-              (movie.first_air_date && new Date(movie.first_air_date).getFullYear().toString()) ||
-              (movie.release_date && new Date(movie.release_date).getFullYear().toString()) ||
-              ""
-            }
-            category={movie.category || ""}
-            thumbnail={`https://image.tmdb.org/t/p/w500${
-              movie.backdrop_path || movie.poster_path || ""
-            }`}
-            rating={movie.vote_average ? movie.vote_average.toFixed(1).toString() : ""}
-            bookmark={bookmarkedItems.includes(movie.id.toString())}
-          />
-        ))}
+        {items.map((item) => {
+          const mediaType: MediaType = item.media_type === "tv" ? "tv" : "movie";
+          const date = item.release_date || item.first_air_date || "";
+          return (
+            <Card
+              key={String(item.id)}
+              id={String(item.id)}
+              title={item.title || item.name || item.original_title || item.original_name || ""}
+              year={date ? new Date(date).getFullYear().toString() : ""}
+              category={mediaType === "tv" ? "TV Series" : "Movie"}
+              thumbnail={`https://image.tmdb.org/t/p/w500${
+                item.backdrop_path || item.poster_path || ""
+              }`}
+              rating={item.vote_average ? item.vote_average.toFixed(1).toString() : ""}
+              bookmark={favorites.includes(String(item.id))}
+            />
+          );
+        })}
       </div>
     </div>
   );

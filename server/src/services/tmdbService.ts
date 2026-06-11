@@ -46,3 +46,36 @@ export const getMovieRecommendations = async (id: string, page = 1) => {
     const { data } = await tmdb.get(`/movie/${id}/recommendations`, { params: { page } });
     return data;
 };
+
+export const getTvRecommendations = async (id: string, page = 1) => {
+    const { data } = await tmdb.get(`/tv/${id}/recommendations`, { params: { page } });
+    return data;
+};
+
+// Blended "popular movies + popular TV" feed for the home "Recommended for you"
+// row, so it's populated even when the user has no bookmarks to personalize from.
+export const getRecommendedFeed = async (page = 1) => {
+    const [movies, tv] = await Promise.all([
+        tmdb.get("/movie/popular", { params: { page } }),
+        tmdb.get("/tv/popular", { params: { page } }),
+    ]);
+
+    const movieResults = (movies.data.results as Record<string, unknown>[]).map((m) => ({
+        ...m,
+        media_type: "movie",
+    }));
+    const tvResults = (tv.data.results as Record<string, unknown>[]).map((t) => ({
+        ...t,
+        media_type: "tv",
+    }));
+
+    // Interleave so the row mixes movies and series instead of grouping them.
+    const results: Record<string, unknown>[] = [];
+    const max = Math.max(movieResults.length, tvResults.length);
+    for (let i = 0; i < max; i++) {
+        if (movieResults[i]) results.push(movieResults[i]);
+        if (tvResults[i]) results.push(tvResults[i]);
+    }
+
+    return { page, results };
+};

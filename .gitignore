@@ -23,6 +23,10 @@ dist-ssr
 deploy/volumes/*/*
 !deploy/volumes/*/.gitkeep
 
+# Frontend Mentor design files — their license forbids redistributing these.
+entertainment-web-app-figma/
+__MACOSX/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

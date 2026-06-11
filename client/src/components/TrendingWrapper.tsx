@@ -57,7 +57,7 @@ export const TrendingWrapper: React.FC = () => {
               (movie.release_date && new Date(movie.release_date).getFullYear().toString()) ||
               ""
             }
-            category={movie.category}
+            category={movie.category || ""}
             thumbnail={movie.poster_path || ""}
             rating={movie.vote_average}
             bookmark={bookmarkedMovies.includes(movie.id)}
