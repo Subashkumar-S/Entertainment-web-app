@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { FaBookmark, FaPlay, FaChevronLeft } from "react-icons/fa";
-import { FiBookmark } from "react-icons/fi";
+import { useSelector } from "react-redux";
+import { FaPlay, FaChevronLeft } from "react-icons/fa";
 import Navbar from "../../components/Navbar";
 import { Card } from "../../components/Card";
+import LibraryActions from "../../components/LibraryActions";
 import { useTrailer } from "../../components/TrailerModal";
 import api from "../../api/axios";
 import { RootState } from "../../store/store";
-import { addFavorites, removeFavorites } from "../../store/userSlice";
 import { TitleDetailsData } from "../../types";
 
 const formatRuntime = (mins: number) => {
@@ -20,9 +19,7 @@ const formatRuntime = (mins: number) => {
 export default function TitleDetailsPage() {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const favorites = useSelector((s: RootState) => s.user.favorites);
-  const email = useSelector((s: RootState) => s.user.email);
 
   const [data, setData] = useState<TitleDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,27 +49,6 @@ export default function TitleDetailsPage() {
     };
   }, [mediaType, id]);
 
-  const isBookmarked = data ? favorites.includes(data.id) : false;
-
-  const toggleBookmark = async () => {
-    if (!data || !email) return;
-    if (isBookmarked) {
-      dispatch(removeFavorites(data.id));
-      try {
-        await api.post("/favorites/removeFavorite", { email, id: data.id });
-      } catch (e) {
-        console.error("Error removing favorite:", e);
-      }
-    } else {
-      dispatch(addFavorites(data.id));
-      try {
-        await api.post("/favorites/addFavorite", { email, id: data.id });
-      } catch (e) {
-        console.error("Error adding favorite:", e);
-      }
-    }
-  };
-
   return (
     <section className="w-full min-h-screen bg-dark-blue lg:flex gap-6 font-outfit">
       <Navbar />
@@ -80,13 +56,7 @@ export default function TitleDetailsPage() {
         {loading && <DetailsSkeleton />}
         {!loading && error && <DetailsError onBack={() => navigate(-1)} />}
         {!loading && !error && data && (
-          <Details
-            data={data}
-            isBookmarked={isBookmarked}
-            onToggleBookmark={toggleBookmark}
-            onBack={() => navigate(-1)}
-            favorites={favorites}
-          />
+          <Details data={data} onBack={() => navigate(-1)} favorites={favorites} />
         )}
       </main>
     </section>
@@ -95,14 +65,10 @@ export default function TitleDetailsPage() {
 
 function Details({
   data,
-  isBookmarked,
-  onToggleBookmark,
   onBack,
   favorites,
 }: {
   data: TitleDetailsData;
-  isBookmarked: boolean;
-  onToggleBookmark: () => void;
   onBack: () => void;
   favorites: string[];
 }) {
@@ -190,8 +156,8 @@ function Details({
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 mt-5">
-              {data.trailerKey && (
+            {data.trailerKey && (
+              <div className="mt-5">
                 <button
                   onClick={() => play(data.mediaType, data.id, data.title)}
                   className="flex items-center gap-2 bg-red rounded-full px-5 py-2 text-white hover:opacity-90"
@@ -199,18 +165,11 @@ function Details({
                   <FaPlay className="w-3 h-3" />
                   Watch Trailer
                 </button>
-              )}
-              <button
-                onClick={onToggleBookmark}
-                className="flex items-center gap-2 bg-semi-dark-blue rounded-full px-5 py-2 text-white hover:bg-greyish-blue/30"
-              >
-                {isBookmarked ? (
-                  <FaBookmark className="w-3 h-3" />
-                ) : (
-                  <FiBookmark className="w-4 h-4" />
-                )}
-                {isBookmarked ? "Bookmarked" : "Bookmark"}
-              </button>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <LibraryActions id={data.id} mediaType={data.mediaType} />
             </div>
 
             {data.overview && (

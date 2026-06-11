@@ -28,8 +28,8 @@ export default function LoginPage() {
             const response = await api.post("/auth/login", { email, password });
 
             if (response.status === 200) {
-                const { fullName, email, favorites, watchedMovies } = response.data.user
-                dispatch(setUser({ fullName, email, favorites, watchedMovies }));
+                const { fullName, email, favorites, watchlist, watchedMovies, ratings } = response.data.user
+                dispatch(setUser({ fullName, email, favorites, watchlist, watchedMovies, ratings }));
                 navigate("/");
             } 
 

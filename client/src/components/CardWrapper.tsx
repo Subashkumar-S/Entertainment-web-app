@@ -72,6 +72,8 @@ export const CardWrapper: React.FC = () => {
   const isBookmarkPage = location.pathname === "/bookmark";
 
   const favorites = useSelector((state: RootState) => state.user.favorites);
+  const watchlist = useSelector((state: RootState) => state.user.watchlist);
+  const [bookmarkTab, setBookmarkTab] = useState<"bookmarks" | "watchlist">("bookmarks");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,7 +97,8 @@ export const CardWrapper: React.FC = () => {
           const { data } = await api.get("/tmdb/tv/popular");
           setItems(tag(data?.results ?? [], "tv"));
         } else if (isBookmarkPage) {
-          setItems(await fetchBookmarkedItems(favorites));
+          const sourceIds = bookmarkTab === "watchlist" ? watchlist : favorites;
+          setItems(await fetchBookmarkedItems(sourceIds));
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -103,16 +106,31 @@ export const CardWrapper: React.FC = () => {
     };
 
     fetchData();
-  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites]);
+  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites, watchlist, bookmarkTab]);
 
   return (
     <div className="w-full py-2">
-      <h2 className="text-2xl md:text-3xl text-white font-outfit py-8">
-        {isHomePage && "Recommended for you"}
-        {isMoviesPage && "Movies"}
-        {isTvSeriesPage && "TV Series"}
-        {isBookmarkPage && "Bookmarks"}
-      </h2>
+      {isBookmarkPage ? (
+        <div className="flex items-center gap-6 py-8 font-outfit">
+          {(["bookmarks", "watchlist"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setBookmarkTab(tab)}
+              className={`text-2xl md:text-3xl capitalize ${
+                bookmarkTab === tab ? "text-white" : "text-greyish-blue hover:text-white"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <h2 className="text-2xl md:text-3xl text-white font-outfit py-8">
+          {isHomePage && "Recommended for you"}
+          {isMoviesPage && "Movies"}
+          {isTvSeriesPage && "TV Series"}
+        </h2>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-24">
         {items.map((item) => {
           const mediaType: MediaType = item.media_type === "tv" ? "tv" : "movie";
@@ -134,6 +152,13 @@ export const CardWrapper: React.FC = () => {
           );
         })}
       </div>
+      {isBookmarkPage && items.length === 0 && (
+        <p className="text-greyish-blue font-outfit">
+          {bookmarkTab === "watchlist"
+            ? "Your watchlist is empty."
+            : "You haven't bookmarked anything yet."}
+        </p>
+      )}
     </div>
   );
 };

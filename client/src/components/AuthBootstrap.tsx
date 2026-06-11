@@ -12,8 +12,8 @@ export default function AuthBootstrap({ children }: { children: ReactNode }) {
     useEffect(() => {
         api.get("/auth/me")
             .then((res) => {
-                const { fullName, email, favorites, watchedMovies } = res.data.user;
-                dispatch(setUser({ fullName, email, favorites, watchedMovies }));
+                const { fullName, email, favorites, watchlist, watchedMovies, ratings } = res.data.user;
+                dispatch(setUser({ fullName, email, favorites, watchlist, watchedMovies, ratings }));
             })
             .catch(() => {
                 dispatch(setUnauthenticated());
