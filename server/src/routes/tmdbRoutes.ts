@@ -9,6 +9,7 @@ import {
     movieRecommendations,
     tvRecommendations,
     recommended,
+    titleDetails,
 } from "../controllers/tmdbController";
 
 const router = Router();
@@ -18,6 +19,7 @@ router.get("/recommended", recommended);
 router.get("/movies/popular", popularMovies);
 router.get("/tv/popular", popularTv);
 router.get("/search", search);
+router.get("/title/:mediaType/:id", titleDetails);
 // More specific routes first so they aren't shadowed by /movie/:id and /tv/:id.
 router.get("/movie/:id/recommendations", movieRecommendations);
 router.get("/movie/:id", movie);

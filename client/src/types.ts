@@ -14,3 +14,57 @@ export interface RegularDataItem {
   category?: string;
   media_type?: 'movie' | 'tv';
 }
+
+export type MediaType = 'movie' | 'tv';
+
+export interface CastMember {
+  id: string;
+  name: string;
+  character: string;
+  profilePath: string | null;
+}
+
+export interface Provider {
+  name: string;
+  logoPath: string | null;
+}
+
+export interface RecommendationItem {
+  id: string;
+  mediaType: MediaType;
+  title: string;
+  year: string;
+  rating: number;
+  backdropPath: string | null;
+  posterPath: string | null;
+}
+
+// Matches the server's normalized /tmdb/title/:mediaType/:id payload.
+export interface TitleDetailsData {
+  id: string;
+  mediaType: MediaType;
+  title: string;
+  tagline: string;
+  overview: string;
+  year: string;
+  releaseDate: string;
+  runtime: number | null;
+  seasons: number | null;
+  episodes: number | null;
+  status: string;
+  genres: string[];
+  rating: number;
+  voteCount: number;
+  certification: string;
+  backdropPath: string | null;
+  posterPath: string | null;
+  trailerKey: string | null;
+  cast: CastMember[];
+  providers: {
+    link: string | null;
+    flatrate: Provider[];
+    rent: Provider[];
+    buy: Provider[];
+  };
+  recommendations: RecommendationItem[];
+}

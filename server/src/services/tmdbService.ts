@@ -42,6 +42,17 @@ export const getTv = async (id: string) => {
     return data;
 };
 
+// Full detail payload for the details page: one request that also pulls credits,
+// videos, images, recommendations/similar, watch providers, and certification.
+export const getTitleDetails = async (mediaType: "movie" | "tv", id: string) => {
+    const base = "credits,videos,images,recommendations,similar,watch/providers";
+    const append = mediaType === "movie" ? `${base},release_dates` : `${base},content_ratings`;
+    const { data } = await tmdb.get(`/${mediaType}/${id}`, {
+        params: { append_to_response: append, include_image_language: "en,null" },
+    });
+    return data;
+};
+
 export const getMovieRecommendations = async (id: string, page = 1) => {
     const { data } = await tmdb.get(`/movie/${id}/recommendations`, { params: { page } });
     return data;

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { cached } from "../utils/cache";
 import * as tmdb from "../services/tmdbService";
+import { normalizeTitle } from "../utils/normalizeTitle";
 import logger from "../config/logger";
 
 const HOUR = 3600;
@@ -84,4 +85,14 @@ export const tvRecommendations = (req: Request, res: Response) => {
 export const recommended = (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     return proxy(res, `tmdb:recommended:p${page}`, HOUR, () => tmdb.getRecommendedFeed(page));
+};
+
+export const titleDetails = (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:title:${mediaType}:${id}`, DAY, async () =>
+        normalizeTitle(mediaType, await tmdb.getTitleDetails(mediaType, id))
+    );
 };

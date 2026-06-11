@@ -31,6 +31,7 @@ export const TrendingWrapper: React.FC = () => {
             poster_path: thumbnail,
             vote_average: typeof item.vote_average === 'number' ? item.vote_average : 0,
             category: item.media_type === 'movie' ? 'Movie' : 'TV Series',
+            media_type: item.media_type === 'tv' ? 'tv' : 'movie',
           };
         });
 
@@ -51,6 +52,7 @@ export const TrendingWrapper: React.FC = () => {
           <TrendingCard
             key={movie.id}
             id={movie.id}
+            mediaType={movie.media_type === 'tv' ? 'tv' : 'movie'}
             title={movie.original_name || movie.original_title || ""}
             year={
               (movie.first_air_date && new Date(movie.first_air_date).getFullYear().toString()) ||

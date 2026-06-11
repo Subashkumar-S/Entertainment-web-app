@@ -3,8 +3,10 @@ import { RiTvFill } from 'react-icons/ri';
 import { FaBookmark, FaPlay } from 'react-icons/fa';
 import { FiBookmark } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
 import { addFavorites, removeFavorites } from '../store/userSlice';
+import { MediaType } from '../types';
 import api from '../api/axios';
 
 type CardProps = {
@@ -15,6 +17,7 @@ type CardProps = {
   category: string;
   rating: string;
   bookmark: boolean;
+  mediaType: MediaType;
 };
 
 export const Card: React.FC<CardProps> = ({
@@ -25,12 +28,15 @@ export const Card: React.FC<CardProps> = ({
   category,
   rating,
   bookmark,
+  mediaType,
 }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const favorites = useSelector((state: RootState) => state.user.favorites);
   const email = useSelector((state: RootState) => state.user.email);
 
-  const handleBookmarkClick = async () => {
+  const handleBookmarkClick = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // don't trigger card navigation
     if (!email) {
       console.error('User email not available');
       return;
@@ -53,17 +59,23 @@ export const Card: React.FC<CardProps> = ({
     }
   };
 
+  const openDetails = () => navigate(`/title/${mediaType}/${id}`);
+
   return (
-    <div className="w-[164px] h-[110px] md:w-[220px] md:h-[140px] lg:w-[280px] lg:h-[174px] font-outfit relative group">
+    <div
+      className="w-[164px] h-[110px] md:w-[220px] md:h-[140px] lg:w-[280px] lg:h-[174px] font-outfit relative group cursor-pointer"
+      onClick={openDetails}
+    >
       <div className="w-full h-full flex items-start relative">
         <img
           src={thumbnail}
-          alt="thumbnail"
-          className="w-full h-full rounded-lg"
+          alt={title}
+          className="w-full h-full rounded-lg object-cover"
         />
         <button
-          className="z-20 w-8 h-8 mt-2 md:mt-4 -ml-10 md:-ml-12 bg-vulcan opacity-80 hover:opacity-60 rounded-full hover:cursor-pointer"
+          className="z-20 w-8 h-8 mt-2 md:mt-4 -ml-10 md:-ml-12 bg-semi-dark-blue opacity-80 hover:opacity-60 rounded-full hover:cursor-pointer"
           onClick={handleBookmarkClick}
+          aria-label={bookmark ? 'Remove bookmark' : 'Add bookmark'}
         >
           {bookmark ? (
             <FaBookmark className="w-3 h-3 m-auto text-white" />
@@ -72,10 +84,10 @@ export const Card: React.FC<CardProps> = ({
           )}
         </button>
         <div className="absolute z-10 inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="bg-white bg-opacity-30 rounded-full p-2 flex items-center justify-center px-4 gap-2 text-white font-outfit">
+          <div className="bg-white bg-opacity-30 rounded-full p-2 flex items-center justify-center px-4 gap-2 text-white font-outfit">
             <FaPlay className="w-6 h-6" />
             <p className="text-sm md:text-lg">Play</p>
-          </button>
+          </div>
         </div>
       </div>
       <div className="pt-2 text-white text-[11px] md:text-[13px] font-light">

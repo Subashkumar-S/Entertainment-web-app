@@ -121,6 +121,7 @@ export const CardWrapper: React.FC = () => {
             <Card
               key={String(item.id)}
               id={String(item.id)}
+              mediaType={mediaType}
               title={item.title || item.name || item.original_title || item.original_name || ""}
               year={date ? new Date(date).getFullYear().toString() : ""}
               category={mediaType === "tv" ? "TV Series" : "Movie"}
