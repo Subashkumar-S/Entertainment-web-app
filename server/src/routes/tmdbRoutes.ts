@@ -11,6 +11,9 @@ import {
     recommended,
     titleDetails,
     titleVideos,
+    genres,
+    discoverTitles,
+    tvSeason,
 } from "../controllers/tmdbController";
 
 const router = Router();
@@ -19,6 +22,8 @@ router.get("/trending", trending);
 router.get("/recommended", recommended);
 router.get("/movies/popular", popularMovies);
 router.get("/tv/popular", popularTv);
+router.get("/genres/:mediaType", genres);
+router.get("/discover/:mediaType", discoverTitles);
 router.get("/search", search);
 router.get("/title/:mediaType/:id/videos", titleVideos);
 router.get("/title/:mediaType/:id", titleDetails);
@@ -26,6 +31,7 @@ router.get("/title/:mediaType/:id", titleDetails);
 router.get("/movie/:id/recommendations", movieRecommendations);
 router.get("/movie/:id", movie);
 router.get("/tv/:id/recommendations", tvRecommendations);
+router.get("/tv/:id/season/:season", tvSeason);
 router.get("/tv/:id", tv);
 
 export default router;

@@ -39,6 +39,17 @@ export interface RecommendationItem {
   posterPath: string | null;
 }
 
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+export interface SeasonSummary {
+  seasonNumber: number;
+  name: string;
+  episodeCount: number;
+}
+
 // Matches the server's normalized /tmdb/title/:mediaType/:id payload.
 export interface TitleDetailsData {
   id: string;
@@ -60,6 +71,7 @@ export interface TitleDetailsData {
   posterPath: string | null;
   trailerKey: string | null;
   cast: CastMember[];
+  seasonList: SeasonSummary[];
   providers: {
     link: string | null;
     flatrate: Provider[];

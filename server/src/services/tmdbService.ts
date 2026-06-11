@@ -47,6 +47,30 @@ export const getVideos = async (mediaType: "movie" | "tv", id: string) => {
     return data;
 };
 
+export const getGenres = async (mediaType: "movie" | "tv") => {
+    const { data } = await tmdb.get(`/genre/${mediaType}/list`);
+    return data;
+};
+
+export const discover = async (
+    mediaType: "movie" | "tv",
+    { genre, sort, page }: { genre?: string; sort?: string; page?: number }
+) => {
+    const { data } = await tmdb.get(`/discover/${mediaType}`, {
+        params: {
+            with_genres: genre || undefined,
+            sort_by: sort || "popularity.desc",
+            page: page || 1,
+        },
+    });
+    return data;
+};
+
+export const getSeason = async (id: string, seasonNumber: number) => {
+    const { data } = await tmdb.get(`/tv/${id}/season/${seasonNumber}`);
+    return data;
+};
+
 // Full detail payload for the details page: one request that also pulls credits,
 // videos, images, recommendations/similar, watch providers, and certification.
 export const getTitleDetails = async (mediaType: "movie" | "tv", id: string) => {

@@ -8,7 +8,7 @@ import LibraryActions from "../../components/LibraryActions";
 import { useTrailer } from "../../components/TrailerModal";
 import api from "../../api/axios";
 import { RootState } from "../../store/store";
-import { TitleDetailsData } from "../../types";
+import { SeasonSummary, TitleDetailsData } from "../../types";
 
 const formatRuntime = (mins: number) => {
   const h = Math.floor(mins / 60);
@@ -204,6 +204,11 @@ function Details({
           </section>
         )}
 
+        {/* Seasons & episodes (TV only) */}
+        {data.mediaType === "tv" && data.seasonList.length > 0 && (
+          <SeasonsSection tvId={data.id} seasons={data.seasonList} />
+        )}
+
         {/* Where to watch */}
         <WhereToWatch providers={data.providers} />
 
@@ -230,6 +235,93 @@ function Details({
         )}
       </div>
     </div>
+  );
+}
+
+interface TmdbEpisode {
+  id: number;
+  episode_number: number;
+  name: string;
+  overview: string;
+  still_path: string | null;
+  runtime: number | null;
+  air_date: string;
+}
+
+function SeasonsSection({ tvId, seasons }: { tvId: string; seasons: SeasonSummary[] }) {
+  const [selected, setSelected] = useState(seasons[0]?.seasonNumber ?? 1);
+  const [episodes, setEpisodes] = useState<TmdbEpisode[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    api
+      .get(`/tmdb/tv/${tvId}/season/${selected}`)
+      .then((res) => {
+        if (active) setEpisodes(res.data?.episodes ?? []);
+      })
+      .catch(() => {
+        if (active) setEpisodes([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [tvId, selected]);
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+        <h2 className="text-white text-xl md:text-2xl">Episodes</h2>
+        <select
+          value={selected}
+          onChange={(e) => setSelected(Number(e.target.value))}
+          className="bg-semi-dark-blue text-white rounded-md px-3 py-2 outline-none"
+          aria-label="Select season"
+        >
+          {seasons.map((s) => (
+            <option key={s.seasonNumber} value={s.seasonNumber}>
+              {s.name} ({s.episodeCount})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {loading ? (
+        <p className="text-greyish-blue">Loading episodes…</p>
+      ) : episodes.length === 0 ? (
+        <p className="text-greyish-blue">No episodes found.</p>
+      ) : (
+        <div className="space-y-3">
+          {episodes.map((ep) => (
+            <div key={ep.id} className="flex gap-4 bg-semi-dark-blue rounded-lg p-3">
+              {ep.still_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w300${ep.still_path}`}
+                  alt={ep.name}
+                  className="w-32 h-20 object-cover rounded shrink-0"
+                />
+              ) : (
+                <div className="w-32 h-20 rounded bg-dark-blue shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className="text-white text-sm font-medium">
+                  {ep.episode_number}. {ep.name}
+                </p>
+                <p className="text-greyish-blue text-xs line-clamp-2 mt-1">{ep.overview}</p>
+                <p className="text-greyish-blue text-[11px] mt-1">
+                  {ep.air_date}
+                  {ep.runtime ? ` • ${ep.runtime}m` : ""}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -39,6 +39,7 @@ export interface NormalizedTitle {
     posterPath: string | null;
     trailerKey: string | null;
     cast: { id: string; name: string; character: string; profilePath: string | null }[];
+    seasonList: { seasonNumber: number; name: string; episodeCount: number }[];
     providers: {
         link: string | null;
         flatrate: { name: string; logoPath: string | null }[];
@@ -119,6 +120,16 @@ export const normalizeTitle = (mediaType: MediaType, data: any): NormalizedTitle
             character: c.character || "",
             profilePath: img(c.profile_path, "w185"),
         })),
+        seasonList:
+            mediaType === "tv"
+                ? (data.seasons ?? [])
+                      .filter((s: any) => s.season_number > 0)
+                      .map((s: any) => ({
+                          seasonNumber: s.season_number,
+                          name: s.name,
+                          episodeCount: s.episode_count,
+                      }))
+                : [],
         providers: {
             link: us.link ?? null,
             flatrate: mapProviders(us.flatrate),

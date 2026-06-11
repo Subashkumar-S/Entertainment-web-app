@@ -4,13 +4,13 @@ import { useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import { RegularDataItem } from "../types";
+import { Genre, RegularDataItem } from "../types";
 
 type MediaType = "movie" | "tv";
 
 // Tag raw TMDB results with a known media_type so the card shows the right
-// icon/label (and, later, links to the correct details route). Results that
-// already carry a media_type (e.g. the blended /recommended feed) keep theirs.
+// icon/label and links to the correct details route. Results that already carry
+// a media_type (e.g. the blended /recommended feed) keep theirs.
 const tag = (results: RegularDataItem[], mediaType: MediaType): RegularDataItem[] =>
   results.map((item) => ({ ...item, media_type: (item.media_type as MediaType) || mediaType }));
 
@@ -25,7 +25,7 @@ const dedupeById = (items: RegularDataItem[]): RegularDataItem[] => {
 };
 
 // Favorites don't store a media_type yet, so personalize off the most recent
-// bookmark by trying movie recommendations first, then tv. Empty if neither hits.
+// bookmark by trying movie recommendations first, then tv.
 const fetchSeedRecommendations = async (id: string): Promise<RegularDataItem[]> => {
   try {
     const { data } = await api.get(`/tmdb/movie/${id}/recommendations`);
@@ -63,50 +63,111 @@ const fetchBookmarkedItems = async (ids: string[]): Promise<RegularDataItem[]> =
   return items.filter((item): item is RegularDataItem => item !== null);
 };
 
+const browseUrl = (mediaType: MediaType, page: number, genreId: number | null) =>
+  genreId
+    ? `/tmdb/discover/${mediaType}?genre=${genreId}&page=${page}`
+    : `/tmdb/${mediaType === "movie" ? "movies" : "tv"}/popular?page=${page}`;
+
 export const CardWrapper: React.FC = () => {
-  const [items, setItems] = useState<RegularDataItem[]>([]);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const isMoviesPage = location.pathname === "/movies";
   const isTvSeriesPage = location.pathname === "/tv-series";
   const isBookmarkPage = location.pathname === "/bookmark";
+  const browseMediaType: MediaType | null = isMoviesPage ? "movie" : isTvSeriesPage ? "tv" : null;
 
   const favorites = useSelector((state: RootState) => state.user.favorites);
   const watchlist = useSelector((state: RootState) => state.user.watchlist);
+
+  const [items, setItems] = useState<RegularDataItem[]>([]);
   const [bookmarkTab, setBookmarkTab] = useState<"bookmarks" | "watchlist">("bookmarks");
 
+  // Browse (movies/tv) genre filter + pagination.
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [genreId, setGenreId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Clear the grid on navigation so stale items from another page don't flash.
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (isHomePage) {
-          // Always load the blended popular feed so the row is never empty,
-          // then prepend personalized picks when the user has bookmarks.
-          const recommendedReq = api.get("/tmdb/recommended");
+    setItems([]);
+  }, [location.pathname]);
 
-          let personalized: RegularDataItem[] = [];
-          if (favorites.length > 0) {
-            personalized = await fetchSeedRecommendations(favorites[favorites.length - 1]);
-          }
+  // Load the genre list (and reset the active filter) for the current browse page.
+  useEffect(() => {
+    if (!browseMediaType) return;
+    setGenreId(null);
+    api
+      .get(`/tmdb/genres/${browseMediaType}`)
+      .then((r) => setGenres(r.data?.genres ?? []))
+      .catch(() => setGenres([]));
+  }, [browseMediaType]);
 
-          const recommended: RegularDataItem[] = (await recommendedReq).data?.results ?? [];
-          setItems(dedupeById([...personalized, ...recommended]));
-        } else if (isMoviesPage) {
-          const { data } = await api.get("/tmdb/movies/popular");
-          setItems(tag(data?.results ?? [], "movie"));
-        } else if (isTvSeriesPage) {
-          const { data } = await api.get("/tmdb/tv/popular");
-          setItems(tag(data?.results ?? [], "tv"));
-        } else if (isBookmarkPage) {
-          const sourceIds = bookmarkTab === "watchlist" ? watchlist : favorites;
-          setItems(await fetchBookmarkedItems(sourceIds));
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+  // Home: blended recommended feed, personalized when the user has bookmarks.
+  useEffect(() => {
+    if (!isHomePage) return;
+    let active = true;
+    (async () => {
+      const recommendedReq = api.get("/tmdb/recommended");
+      let personalized: RegularDataItem[] = [];
+      if (favorites.length > 0) {
+        personalized = await fetchSeedRecommendations(favorites[favorites.length - 1]);
       }
+      const recommended: RegularDataItem[] = (await recommendedReq).data?.results ?? [];
+      if (active) setItems(dedupeById([...personalized, ...recommended]));
+    })().catch((e) => console.error("Error loading recommended:", e));
+    return () => {
+      active = false;
     };
+  }, [isHomePage, favorites]);
 
-    fetchData();
-  }, [isHomePage, isMoviesPage, isTvSeriesPage, isBookmarkPage, favorites, watchlist, bookmarkTab]);
+  // Movies / TV: first page of popular (or discover-by-genre). Not tied to
+  // favorites, so bookmarking a card here doesn't reset the grid/pagination.
+  useEffect(() => {
+    if (!browseMediaType) return;
+    let active = true;
+    (async () => {
+      const { data } = await api.get(browseUrl(browseMediaType, 1, genreId));
+      if (!active) return;
+      setItems(tag(data?.results ?? [], browseMediaType));
+      setPage(1);
+      setHasMore(1 < (data?.total_pages ?? 1));
+    })().catch((e) => console.error("Error loading browse page:", e));
+    return () => {
+      active = false;
+    };
+  }, [browseMediaType, genreId]);
+
+  // Bookmarks / Watchlist: resolve the selected id list to full items.
+  useEffect(() => {
+    if (!isBookmarkPage) return;
+    let active = true;
+    (async () => {
+      const sourceIds = bookmarkTab === "watchlist" ? watchlist : favorites;
+      const resolved = await fetchBookmarkedItems(sourceIds);
+      if (active) setItems(resolved);
+    })().catch((e) => console.error("Error resolving bookmarks:", e));
+    return () => {
+      active = false;
+    };
+  }, [isBookmarkPage, bookmarkTab, favorites, watchlist]);
+
+  const loadMore = async () => {
+    if (!browseMediaType || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = page + 1;
+      const { data } = await api.get(browseUrl(browseMediaType, next, genreId));
+      setItems((prev) => dedupeById([...prev, ...tag(data?.results ?? [], browseMediaType)]));
+      setPage(next);
+      setHasMore(next < (data?.total_pages ?? 1));
+    } catch (e) {
+      console.error("Error loading more:", e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   return (
     <div className="w-full py-2">
@@ -131,6 +192,31 @@ export const CardWrapper: React.FC = () => {
           {isTvSeriesPage && "TV Series"}
         </h2>
       )}
+
+      {browseMediaType && genres.length > 0 && (
+        <div className="flex flex-wrap gap-2 pb-8 font-outfit">
+          <button
+            onClick={() => setGenreId(null)}
+            className={`text-xs rounded-full px-3 py-1 ${
+              genreId === null ? "bg-red text-white" : "bg-semi-dark-blue text-greyish-blue hover:text-white"
+            }`}
+          >
+            All
+          </button>
+          {genres.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => setGenreId(g.id)}
+              className={`text-xs rounded-full px-3 py-1 ${
+                genreId === g.id ? "bg-red text-white" : "bg-semi-dark-blue text-greyish-blue hover:text-white"
+              }`}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-24">
         {items.map((item) => {
           const mediaType: MediaType = item.media_type === "tv" ? "tv" : "movie";
@@ -152,12 +238,25 @@ export const CardWrapper: React.FC = () => {
           );
         })}
       </div>
+
       {isBookmarkPage && items.length === 0 && (
         <p className="text-greyish-blue font-outfit">
           {bookmarkTab === "watchlist"
             ? "Your watchlist is empty."
             : "You haven't bookmarked anything yet."}
         </p>
+      )}
+
+      {browseMediaType && hasMore && (
+        <div className="flex justify-center pt-10">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="bg-semi-dark-blue text-white font-outfit rounded-full px-8 py-3 hover:bg-greyish-blue/30 disabled:opacity-60"
+          >
+            {loadingMore ? "Loading…" : "Load more"}
+          </button>
+        </div>
       )}
     </div>
   );

@@ -97,6 +97,38 @@ export const titleDetails = (req: Request, res: Response) => {
     );
 };
 
+export const genres = (req: Request, res: Response) => {
+    const { mediaType } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:genres:${mediaType}`, DAY, () => tmdb.getGenres(mediaType));
+};
+
+export const discoverTitles = (req: Request, res: Response) => {
+    const { mediaType } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    const genre = (req.query.genre as string) || "";
+    const sort = (req.query.sort as string) || "popularity.desc";
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:discover:${mediaType}:${genre}:${sort}:p${page}`, HOUR, () =>
+        tmdb.discover(mediaType, { genre, sort, page })
+    );
+};
+
+export const tvSeason = (req: Request, res: Response) => {
+    const { id, season } = req.params;
+    const seasonNumber = Number(season);
+    if (!Number.isInteger(seasonNumber) || seasonNumber < 0) {
+        return res.status(400).json({ message: "season must be a non-negative integer" });
+    }
+    return proxy(res, `tmdb:tv:${id}:season:${seasonNumber}`, DAY, () =>
+        tmdb.getSeason(id, seasonNumber)
+    );
+};
+
 // Lightweight endpoint so a "Play" button can fetch just the trailer key
 // without pulling the whole details payload.
 export const titleVideos = (req: Request, res: Response) => {
