@@ -70,6 +70,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 // Lets the client rehydrate its auth state from the session cookie on load,
 // so a page refresh doesn't lose the logged-in user (and loop back to /login).
 export const me = async (req: Request, res: Response) => {
+    // Session state must never be cached/revalidated — otherwise the browser
+    // serves a 304 with an empty body and the client can't rehydrate the user.
+    res.set("Cache-Control", "no-store");
     if (!req.isAuthenticated || !req.isAuthenticated()) {
         return res.status(401).json({ message: "Not authenticated" });
     }

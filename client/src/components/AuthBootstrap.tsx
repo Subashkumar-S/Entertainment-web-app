@@ -10,14 +10,26 @@ export default function AuthBootstrap({ children }: { children: ReactNode }) {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        let active = true;
         api.get("/auth/me")
             .then((res) => {
-                const { fullName, email, favorites, watchlist, watchedMovies, ratings } = res.data.user;
+                if (!active) return;
+                // Guard against an empty body (e.g. a 304 with no payload): without
+                // a user, treat it as unauthenticated rather than throwing.
+                const u = res.data?.user;
+                if (!u) {
+                    dispatch(setUnauthenticated());
+                    return;
+                }
+                const { fullName, email, favorites, watchlist, watchedMovies, ratings } = u;
                 dispatch(setUser({ fullName, email, favorites, watchlist, watchedMovies, ratings }));
             })
             .catch(() => {
-                dispatch(setUnauthenticated());
+                if (active) dispatch(setUnauthenticated());
             });
+        return () => {
+            active = false;
+        };
     }, [dispatch]);
 
     return <>{children}</>;
