@@ -213,7 +213,7 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 - [x] Vitest tests (normalizer, recommendations feed, recently-viewed, recent-search merge) + GitHub Actions CI (lint · test · build for client & server) with a status badge.
 - [ ] Deploy (see §6) and set env vars in each dashboard.
 - [ ] Update the portfolio's project entry to the real live link.
-- [ ] _(Optional)_ Google OAuth.
+- [x] _(Optional)_ Google OAuth — `passport-google-oauth20` strategy + `/auth/google` routes, gated on `GOOGLE_*` env vars, with a "Continue with Google" button that auto-appears via `/auth/config`. Links to an existing email account or creates a passwordless one.
 
 ---
 

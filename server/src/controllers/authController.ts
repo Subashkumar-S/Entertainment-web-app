@@ -2,6 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
 import bcrypt from "bcrypt";
 import passport from "passport";
+import config from "../config/env";
+
+// Lets the client know which optional auth providers are available, so it can
+// conditionally render e.g. the "Continue with Google" button.
+export const authProviders = (_req: Request, res: Response) => {
+    res.status(200).json({ google: config.google.enabled });
+};
 
 export const signup = async (req: Request, res: Response) => {
     try {

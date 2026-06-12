@@ -62,7 +62,7 @@ session-based auth flow.
   activity chart, all computed from your own interaction events via MongoDB
   aggregation.
 - **Auth** — sign up / log in with a session cookie; protected routes; session
-  rehydration via `/api/auth/me`.
+  rehydration via `/api/auth/me`; plus optional **"Continue with Google"** OAuth.
 
 ## Tech stack
 
@@ -145,9 +145,18 @@ cp .env.example .env
 | `MONGODB_URI` | no | `mongodb://localhost:27017/entertainment` | Set to Atlas in prod. |
 | `REDIS_URL` | no | `redis://localhost:6379` | Set to managed Redis in prod. |
 | `NODE_ENV` | no | — | Set `production` to enable Secure/SameSite=None cookies and make secrets mandatory. |
+| `GOOGLE_CLIENT_ID` | no | — | Enables "Continue with Google" when set with the secret. |
+| `GOOGLE_CLIENT_SECRET` | no | — | Google OAuth client secret. |
+| `GOOGLE_CALLBACK_URL` | no | `http://localhost:5000/api/auth/google/callback` | Must match an Authorized redirect URI in the Google console. |
 
 > The `.env` file is gitignored — **never commit real secrets**. Only
 > `.env.example` placeholders are tracked.
+
+**Google OAuth (optional):** create an OAuth client at the
+[Google Cloud console](https://console.cloud.google.com/apis/credentials), add
+the callback URL above as an Authorized redirect URI, set the three `GOOGLE_*`
+vars, and a "Continue with Google" button appears on Login/Signup automatically.
+Leave them unset and the feature stays cleanly disabled.
 
 ### Run locally (host Node + Docker data stores)
 
@@ -210,7 +219,7 @@ All routes are under `/api` and rate-limited.
 
 | Prefix | Purpose |
 |---|---|
-| `/api/auth` | `signup`, `login`, `logout`, `me` (session rehydration). |
+| `/api/auth` | `signup`, `login`, `logout`, `me` (session rehydration), `config` (enabled providers), and Google OAuth (`google` + `google/callback`) when configured. |
 | `/api/favorites` | Add / remove bookmarks. |
 | `/api/library` | Watchlist, watched toggle, ratings. |
 | `/api/search` | Per-user recent searches in Redis (`recent`: get / record / clear). |

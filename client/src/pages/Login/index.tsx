@@ -5,6 +5,7 @@ import axios from "axios";
 import api from "../../api/axios";
 import { setUser } from "../../store/userSlice";
 import { useDispatch } from "react-redux";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -77,6 +78,7 @@ export default function LoginPage() {
                         Login to your account
                     </button>
                 </form>
+                <GoogleSignInButton />
                 {serverError && <p className="text-red text-center pt-4">{serverError}</p>}
                 <p className="pt-6 w-full text-[15px] text-center">
                     Don't have an account?

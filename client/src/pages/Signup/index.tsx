@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import api from "../../api/axios";
 import logo from "/logo.svg";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -123,6 +124,7 @@ export default function SignupPage() {
             Create an account
           </button>
         </form>
+        <GoogleSignInButton />
         {error && <p className="pt-4 text-center text-red">{error}</p>}
         <p className="pt-4 w-full text-[15px] text-center">
           Already have an account?

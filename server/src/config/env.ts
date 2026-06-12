@@ -38,9 +38,16 @@ const clientOrigins = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173,http:
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+const port = Number(process.env.PORT) || 5000;
+
+// Google OAuth is optional: the strategy and routes only activate when both
+// client id and secret are provided, so the app runs fine without them.
+const googleClientId = process.env.GOOGLE_CLIENT_ID ?? "";
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+
 const config = {
     isProd,
-    port: Number(process.env.PORT) || 5000,
+    port,
     secret: process.env.SECRET ?? "dev-insecure-secret",
     clientOrigins,
     mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/entertainment",
@@ -48,6 +55,14 @@ const config = {
     tmdb: {
         apiKey: tmdbApiKey,
         baseUrl: process.env.TMDB_BASE_URL ?? "https://api.themoviedb.org/3",
+    },
+    google: {
+        clientId: googleClientId,
+        clientSecret: googleClientSecret,
+        enabled: Boolean(googleClientId && googleClientSecret),
+        // Must exactly match an Authorized redirect URI in the Google console.
+        callbackUrl:
+            process.env.GOOGLE_CALLBACK_URL ?? `http://localhost:${port}/api/auth/google/callback`,
     },
     logLevel: process.env.LOG_LEVEL ?? (isProd ? "info" : "debug"),
 };
