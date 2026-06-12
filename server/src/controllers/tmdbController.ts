@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { cached } from "../utils/cache";
 import * as tmdb from "../services/tmdbService";
+import { normalizeTitle, pickTrailer } from "../utils/normalizeTitle";
 import logger from "../config/logger";
 
 const HOUR = 3600;
@@ -72,4 +73,71 @@ export const movieRecommendations = (req: Request, res: Response) => {
     return proxy(res, `tmdb:movie:${req.params.id}:recs:p${page}`, 6 * HOUR, () =>
         tmdb.getMovieRecommendations(req.params.id, page)
     );
+};
+
+export const tvRecommendations = (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:tv:${req.params.id}:recs:p${page}`, 6 * HOUR, () =>
+        tmdb.getTvRecommendations(req.params.id, page)
+    );
+};
+
+export const recommended = (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:recommended:p${page}`, HOUR, () => tmdb.getRecommendedFeed(page));
+};
+
+export const titleDetails = (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:title:${mediaType}:${id}`, DAY, async () =>
+        normalizeTitle(mediaType, await tmdb.getTitleDetails(mediaType, id))
+    );
+};
+
+export const genres = (req: Request, res: Response) => {
+    const { mediaType } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:genres:${mediaType}`, DAY, () => tmdb.getGenres(mediaType));
+};
+
+export const discoverTitles = (req: Request, res: Response) => {
+    const { mediaType } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    const genre = (req.query.genre as string) || "";
+    const sort = (req.query.sort as string) || "popularity.desc";
+    const page = Number(req.query.page) || 1;
+    return proxy(res, `tmdb:discover:${mediaType}:${genre}:${sort}:p${page}`, HOUR, () =>
+        tmdb.discover(mediaType, { genre, sort, page })
+    );
+};
+
+export const tvSeason = (req: Request, res: Response) => {
+    const { id, season } = req.params;
+    const seasonNumber = Number(season);
+    if (!Number.isInteger(seasonNumber) || seasonNumber < 0) {
+        return res.status(400).json({ message: "season must be a non-negative integer" });
+    }
+    return proxy(res, `tmdb:tv:${id}:season:${seasonNumber}`, DAY, () =>
+        tmdb.getSeason(id, seasonNumber)
+    );
+};
+
+// Lightweight endpoint so a "Play" button can fetch just the trailer key
+// without pulling the whole details payload.
+export const titleVideos = (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+        return res.status(400).json({ message: "mediaType must be 'movie' or 'tv'" });
+    }
+    return proxy(res, `tmdb:videos:${mediaType}:${id}`, DAY, async () => {
+        const data = await tmdb.getVideos(mediaType, id);
+        return { trailerKey: pickTrailer(data.results ?? []) };
+    });
 };

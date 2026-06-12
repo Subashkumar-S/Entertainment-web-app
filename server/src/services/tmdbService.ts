@@ -42,7 +42,80 @@ export const getTv = async (id: string) => {
     return data;
 };
 
+export const getVideos = async (mediaType: "movie" | "tv", id: string) => {
+    const { data } = await tmdb.get(`/${mediaType}/${id}/videos`);
+    return data;
+};
+
+export const getGenres = async (mediaType: "movie" | "tv") => {
+    const { data } = await tmdb.get(`/genre/${mediaType}/list`);
+    return data;
+};
+
+export const discover = async (
+    mediaType: "movie" | "tv",
+    { genre, sort, page }: { genre?: string; sort?: string; page?: number }
+) => {
+    const { data } = await tmdb.get(`/discover/${mediaType}`, {
+        params: {
+            with_genres: genre || undefined,
+            sort_by: sort || "popularity.desc",
+            page: page || 1,
+        },
+    });
+    return data;
+};
+
+export const getSeason = async (id: string, seasonNumber: number) => {
+    const { data } = await tmdb.get(`/tv/${id}/season/${seasonNumber}`);
+    return data;
+};
+
+// Full detail payload for the details page: one request that also pulls credits,
+// videos, images, recommendations/similar, watch providers, and certification.
+export const getTitleDetails = async (mediaType: "movie" | "tv", id: string) => {
+    const base = "credits,videos,images,recommendations,similar,watch/providers";
+    const append = mediaType === "movie" ? `${base},release_dates` : `${base},content_ratings`;
+    const { data } = await tmdb.get(`/${mediaType}/${id}`, {
+        params: { append_to_response: append, include_image_language: "en,null" },
+    });
+    return data;
+};
+
 export const getMovieRecommendations = async (id: string, page = 1) => {
     const { data } = await tmdb.get(`/movie/${id}/recommendations`, { params: { page } });
     return data;
+};
+
+export const getTvRecommendations = async (id: string, page = 1) => {
+    const { data } = await tmdb.get(`/tv/${id}/recommendations`, { params: { page } });
+    return data;
+};
+
+// Blended "popular movies + popular TV" feed for the home "Recommended for you"
+// row, so it's populated even when the user has no bookmarks to personalize from.
+export const getRecommendedFeed = async (page = 1) => {
+    const [movies, tv] = await Promise.all([
+        tmdb.get("/movie/popular", { params: { page } }),
+        tmdb.get("/tv/popular", { params: { page } }),
+    ]);
+
+    const movieResults = (movies.data.results as Record<string, unknown>[]).map((m) => ({
+        ...m,
+        media_type: "movie",
+    }));
+    const tvResults = (tv.data.results as Record<string, unknown>[]).map((t) => ({
+        ...t,
+        media_type: "tv",
+    }));
+
+    // Interleave so the row mixes movies and series instead of grouping them.
+    const results: Record<string, unknown>[] = [];
+    const max = Math.max(movieResults.length, tvResults.length);
+    for (let i = 0; i < max; i++) {
+        if (movieResults[i]) results.push(movieResults[i]);
+        if (tvResults[i]) results.push(tvResults[i]);
+    }
+
+    return { page, results };
 };
