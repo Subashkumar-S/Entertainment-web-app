@@ -5,7 +5,7 @@
 > details page** reachable by clicking a card — and then a phased path to a
 > full-featured, TMDB-powered streaming-style app (responsive: mobile/tablet/desktop).
 
-_Last updated: 2026-06-11_
+_Last updated: 2026-06-12 — Phases 0–6 complete; only manual screenshots/deploy remain._
 
 ---
 
@@ -52,18 +52,18 @@ _Last updated: 2026-06-11_
 
 **Goal:** the row is never empty, and is personalized when possible.
 
-- [ ] **Server:** add `GET /api/tmdb/recommended` — when no personalization is
+- [x] **Server:** add `GET /api/tmdb/recommended` — when no personalization is
       available, return a blended popular movies+tv feed (cache 1h). _(extends
       `tmdbService.ts` / `tmdbController.ts` / `tmdbRoutes.ts`)_
-- [ ] **Server:** add `tv/:id/recommendations` (mirror of the movie one).
-- [ ] **Client (`CardWrapper.tsx`):** for the home grid —
+- [x] **Server:** add `tv/:id/recommendations` (mirror of the movie one).
+- [x] **Client (`CardWrapper.tsx`):** for the home grid —
       - if user has favorites → fetch recommendations for the most recent favorite
         (movie **or** tv, using its stored media_type), then **fall back/merge**
         with `/tmdb/recommended` so the grid is always full;
       - if no favorites → just `/tmdb/recommended`.
-- [ ] **Fix** the category-icon string mismatch and switch display to `title`/`name`.
-- [ ] **Remove** the stray `console.log` in `ContentWrapper.tsx`.
-- [ ] **Verify:** new account (no bookmarks) shows a populated "Recommended for you".
+- [x] **Fix** the category-icon string mismatch and switch display to `title`/`name`.
+- [x] **Remove** the stray `console.log` in `ContentWrapper.tsx`.
+- [x] **Verify:** new account (no bookmarks) shows a populated "Recommended for you".
 
 ---
 
@@ -72,39 +72,39 @@ _Last updated: 2026-06-11_
 **Goal:** clicking any card opens `/title/:mediaType/:id` with a rich, responsive page.
 
 ### 1a. Server — enrich the details endpoints
-- [ ] Extend `getMovie`/`getTv` to pass `append_to_response=credits,videos,images,recommendations,similar,watch/providers` (+ `release_dates` for movies / `content_ratings` for tv → certification). _(`tmdbService.ts`)_
-- [ ] Add a unified `GET /api/tmdb/title/:mediaType/:id` controller that validates `mediaType ∈ {movie,tv}` and returns a **normalized** shape (title, year, runtime/seasons, genres, overview, cast[], trailerKey, providers, backdrop/poster, certification, recommendations[]). Keeps the client simple. _(`tmdbController.ts`, `tmdbRoutes.ts`)_
-- [ ] Cache per id (1 day, matching existing detail TTL).
+- [x] Extend `getMovie`/`getTv` to pass `append_to_response=credits,videos,images,recommendations,similar,watch/providers` (+ `release_dates` for movies / `content_ratings` for tv → certification). _(`tmdbService.ts`)_
+- [x] Add a unified `GET /api/tmdb/title/:mediaType/:id` controller that validates `mediaType ∈ {movie,tv}` and returns a **normalized** shape (title, year, runtime/seasons, genres, overview, cast[], trailerKey, providers, backdrop/poster, certification, recommendations[]). Keeps the client simple. _(`tmdbController.ts`, `tmdbRoutes.ts`)_
+- [x] Cache per id (1 day, matching existing detail TTL).
 
 ### 1b. Client — routing + navigation
-- [ ] Add route `{ path: "/title/:mediaType/:id", element: <ProtectedRoute element={<TitleDetails/>} /> }`. _(`Routes/index.tsx`)_
-- [ ] Make `Card` and `TrendingCard` navigate on click (wrap media in a `Link`/`onClick → navigate`), with `stopPropagation` on the bookmark and Play buttons so they don't trigger navigation.
-- [ ] Carry `media_type` on each card so the link targets the right `:mediaType`.
+- [x] Add route `{ path: "/title/:mediaType/:id", element: <ProtectedRoute element={<TitleDetails/>} /> }`. _(`Routes/index.tsx`)_
+- [x] Make `Card` and `TrendingCard` navigate on click (wrap media in a `Link`/`onClick → navigate`), with `stopPropagation` on the bookmark and Play buttons so they don't trigger navigation.
+- [x] Carry `media_type` on each card so the link targets the right `:mediaType`.
 
 ### 1c. Client — the `TitleDetails` page (new `pages/TitleDetails/index.tsx`)
 Sections (all driven by the normalized endpoint):
-- [ ] **Hero**: full-bleed backdrop with gradient scrim; title, year • type • runtime/seasons • rating • certification meta row (reuse the existing meta-row pattern).
-- [ ] **Poster + actions**: bookmark (favorites), **+ Watchlist**, **Watched** toggle, **star rating (1–5)** → wire to `/api/library/*` (endpoints already exist).
-- [ ] **"Play trailer"** button → opens the trailer modal (Phase 2).
-- [ ] **Overview**, **genres** (chips), **top cast** (horizontal avatar row).
-- [ ] **"Where to watch"** provider logos (Phase 2).
-- [ ] **"More like this"** = recommendations/similar grid (reuses `Card`).
-- [ ] **Loading skeletons** + **error/empty** states.
+- [x] **Hero**: full-bleed backdrop with gradient scrim; title, year • type • runtime/seasons • rating • certification meta row (reuse the existing meta-row pattern).
+- [x] **Poster + actions**: bookmark (favorites), **+ Watchlist**, **Watched** toggle, **star rating (1–5)** → wire to `/api/library/*` (endpoints already exist).
+- [x] **"Play trailer"** button → opens the trailer modal (Phase 2).
+- [x] **Overview**, **genres** (chips), **top cast** (horizontal avatar row).
+- [x] **"Where to watch"** provider logos (Phase 2).
+- [x] **"More like this"** = recommendations/similar grid (reuses `Card`).
+- [x] **Loading skeletons** + **error/empty** states.
 
 ### 1d. Responsive (match the existing breakpoints)
-- [ ] **Mobile (<768):** single column — backdrop on top, stacked meta, actions as a row, cast/recs horizontally scrollable.
-- [ ] **Tablet (≥768):** poster beside meta; 2–3 col recommendation grid.
-- [ ] **Desktop (≥1024):** hero backdrop with overlaid title; content + a right-rail (providers, facts); 4-col recommendation grid (mirrors `CardWrapper`'s `xl:grid-cols-4`).
-- [ ] Sidebar `Navbar` stays as-is (already responsive).
+- [x] **Mobile (<768):** single column — backdrop on top, stacked meta, actions as a row, cast/recs horizontally scrollable.
+- [x] **Tablet (≥768):** poster beside meta; 2–3 col recommendation grid.
+- [x] **Desktop (≥1024):** hero backdrop with overlaid title; content + a right-rail (providers, facts); 4-col recommendation grid (mirrors `CardWrapper`'s `xl:grid-cols-4`).
+- [x] Sidebar `Navbar` stays as-is (already responsive).
 
 ---
 
 ## Phase 2 — Trailer playback + "Where to watch" (½ day)
 
-- [ ] **Trailer modal** component: YouTube iframe from the `trailerKey`; focus-trap, Esc/overlay-to-close, no background scroll.
-- [ ] Wire **every "Play" affordance** (grid cards, trending cards, details hero) to open the trailer modal for that title.
-- [ ] **Provider row**: render `watch/providers` (flatrate/rent/buy) logos for the user's region with a JustWatch attribution link (TMDB's required attribution).
-- [ ] Empty-state copy when a title has no trailer / no providers.
+- [x] **Trailer modal** component: YouTube iframe from the `trailerKey`; focus-trap, Esc/overlay-to-close, no background scroll.
+- [x] Wire **every "Play" affordance** (grid cards, trending cards, details hero) to open the trailer modal for that title.
+- [x] **Provider row**: render `watch/providers` (flatrate/rent/buy) logos for the user's region with a JustWatch attribution link (TMDB's required attribution).
+- [x] Empty-state copy when a title has no trailer / no providers.
 
 ---
 
@@ -112,20 +112,20 @@ Sections (all driven by the normalized endpoint):
 
 Wire the **already-built** `/api/library/*` endpoints into the UI and the Redux store.
 
-- [ ] Extend `userSlice` with `watchlist`, `watchedMovies`, `ratings` (+ reducers); hydrate them in `/auth/me` (extend `authController.me` to return them).
-- [ ] Card/details controls: bookmark (favorite) vs **+ Watchlist** vs **Watched** vs **Rate**.
-- [ ] **Bookmark page → tabs/sections**: "Bookmarked Movies", "Bookmarked TV", and a separate **Watchlist** view; store `media_type` alongside each id to drop the brittle movie-then-tv probing.
-- [ ] Optional "Watched" filter + your-rating badge on cards.
+- [x] Extend `userSlice` with `watchlist`, `watchedMovies`, `ratings` (+ reducers); hydrate them in `/auth/me` (extend `authController.me` to return them).
+- [x] Card/details controls: bookmark (favorite) vs **+ Watchlist** vs **Watched** vs **Rate**.
+- [x] **Bookmark page → tabs/sections**: "Bookmarked Movies", "Bookmarked TV", and a separate **Watchlist** view; store `media_type` alongside each id to drop the brittle movie-then-tv probing.
+- [x] Optional "Watched" filter + your-rating badge on cards.
 
 ---
 
 ## Phase 4 — Browse depth (1–1.5 days)
 
-- [ ] **Genres**: `GET /api/tmdb/genres`; genre chips/filter on Movies & TV pages.
-- [ ] **Discover**: `GET /api/tmdb/discover/:mediaType?genre=&sort=` → genre rows ("Action", "Comedy", …) on Home.
-- [ ] **TV seasons/episodes**: `GET /api/tmdb/tv/:id/season/:n`; a season selector + episode list on the details page for series.
-- [ ] **Infinite scroll / pagination** on Movies, TV, search, and recommendation grids (the proxy already takes `page`).
-- [ ] **Search upgrade**: debounced live multi-search with poster results; **recent searches per user in Redis** (recall from ROADMAP #7).
+- [x] **Genres**: `GET /api/tmdb/genres`; genre chips/filter on Movies & TV pages.
+- [x] **Discover**: `GET /api/tmdb/discover/:mediaType?genre=&sort=` → genre rows ("Action", "Comedy", …) on Home.
+- [x] **TV seasons/episodes**: `GET /api/tmdb/tv/:id/season/:n`; a season selector + episode list on the details page for series.
+- [x] **Infinite scroll / pagination** on Movies, TV, search, and recommendation grids (the proxy already takes `page`).
+- [x] **Search upgrade**: debounced live multi-search with poster results; **recent searches per user in Redis** (recall from ROADMAP #7).
 
 ---
 

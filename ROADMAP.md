@@ -8,7 +8,7 @@
 > and observability — so it reads as a real full-stack system, and showcases the
 > data/telemetry skills that are the differentiator.
 
-_Last updated: 2026-06-10_
+_Last updated: 2026-06-12 — Milestones 0–4 built; remaining items are manual (rotate secrets, deploy, screenshots, portfolio link)._
 
 ---
 
@@ -85,30 +85,30 @@ has to be healthy and safe before building on it.
 
 ### 2.2 Functional bugs
 
-- [ ] **Connect to Mongo once at startup.** `connectDB()` / `disconnectDB()` are
+- [x] **Connect to Mongo once at startup.** `connectDB()` / `disconnectDB()` are
       currently called inside every controller (`authController.ts`,
       `favoriteController.ts`). `disconnectDB()` closes *all* connections, so
       concurrent requests tear down each other's in-flight queries — it works solo
       and goes flaky under any real use. Call `connectDB()` once in `index.ts`
       before `app.listen()`, and remove the per-request connect/disconnect calls.
-- [ ] **Remove hardcoded API URLs from the client.** `http://localhost:5000` is
+- [x] **Remove hardcoded API URLs from the client.** `http://localhost:5000` is
       hardcoded in 6+ places (`Navbar`, `Login`, `Signup`, `Card`, `TrendingCard`).
       Replace with a single axios instance using `VITE_API_BASE_URL`.
-- [ ] **Reconcile TMDB env var names.** Code reads `VITE_APP_API_KEY`; one of the
+- [x] **Reconcile TMDB env var names.** Code reads `VITE_APP_API_KEY`; one of the
       `.env` files defines `VITE_TMDB_API_KEY`. Pick one (and after §3.1 the key
       moves server-side entirely).
 
 ### 2.3 Deployment blockers
 
-- [ ] **CORS origin is hardcoded** to `http://localhost:3000` (`index.ts`). Move to
+- [x] **CORS origin is hardcoded** to `http://localhost:3000` (`index.ts`). Move to
       an env-driven allowlist, keep `credentials: true`.
-- [ ] **Auth cookie is browser-invalid cross-site.** `secure: false` +
+- [x] **Auth cookie is browser-invalid cross-site.** `secure: false` +
       `sameSite: 'none'` is rejected by Chrome, so login cookies won't persist
       across a Vercel-frontend / Render-API split. Use `secure: true` +
       `sameSite: 'none'` in production (HTTPS), `sameSite: 'lax'` in dev.
-- [ ] **`PORT` has no default; `SECRET` falls back to `"secret"`.** Add a sane PORT
+- [x] **`PORT` has no default; `SECRET` falls back to `"secret"`.** Add a sane PORT
       default and fail fast if `SECRET` is missing in production.
-- [ ] **Remove the malformed `proxy` field** in `client/package.json`
+- [x] **Remove the malformed `proxy` field** in `client/package.json`
       (`http:ewa-server:5000`) — ineffective under Vite.
 
 ---
@@ -182,13 +182,13 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 
 ### Milestone 1 — Backend-ification _(1–2 days)_
 
-- [ ] Central server `config` module (env: API base, CORS allowlist, TMDB key, Redis URL, Mongo URI).
-- [ ] Env-driven CORS allowlist + corrected cookie flags.
-- [ ] Single client axios instance on `VITE_API_BASE_URL`; remove all hardcoded URLs.
-- [ ] `/api/tmdb/*` proxy routes (trending, movies, tv, search, details) — TMDB key server-side only.
-- [ ] Redis cache-aside wrapper with TTL around the proxy; log cache hit/miss.
-- [ ] Client switched to `/api/tmdb/*`; client-side TMDB key removed.
-- [ ] `/health` endpoint; pino structured logging; Redis-backed rate limiting.
+- [x] Central server `config` module (env: API base, CORS allowlist, TMDB key, Redis URL, Mongo URI).
+- [x] Env-driven CORS allowlist + corrected cookie flags.
+- [x] Single client axios instance on `VITE_API_BASE_URL`; remove all hardcoded URLs.
+- [x] `/api/tmdb/*` proxy routes (trending, movies, tv, search, details) — TMDB key server-side only.
+- [x] Redis cache-aside wrapper with TTL around the proxy; log cache hit/miss.
+- [x] Client switched to `/api/tmdb/*`; client-side TMDB key removed.
+- [x] `/health` endpoint; pino structured logging; Redis-backed rate limiting.
 
 ### Milestone 2 — Activity analytics _(1–2 days)_
 
@@ -201,14 +201,14 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 
 ### Milestone 3 — Richer product _(1–2 days)_
 
-- [ ] Extend favorites → watchlist + watched + rating (model + endpoints).
-- [ ] UI: rating control, watched toggle, dedicated watchlist page.
-- [ ] "Because you bookmarked…" recommendations row.
+- [x] Extend favorites → watchlist + watched + rating (model + endpoints).
+- [x] UI: rating control, watched toggle, dedicated watchlist page.
+- [x] "Because you bookmarked…" recommendations row.
 - [x] Infinite scroll/pagination on browse pages ("Load more"); per-user recent-searches via Redis (`/api/search/recent`) surfaced in the search dropdown.
 
 ### Milestone 4 — Polish & ship _(1 day)_
 
-- [ ] Rewrite the README (see §7).
+- [x] Rewrite the README (see §7).
 - [ ] Add screenshots / a short demo GIF.
 - [x] Vitest tests (normalizer, recommendations feed, recently-viewed, recent-search merge) + GitHub Actions CI (lint · test · build for client & server) with a status badge.
 - [ ] Deploy (see §6) and set env vars in each dashboard.
@@ -325,11 +325,11 @@ origin in the allowlist.
 The current README is the untouched Frontend Mentor boilerplate. Replace it with:
 
 - [ ] One-line description + **live demo link** + repo link.
-- [ ] Correct stack (Vite/React/Redux/TS · Express/Mongo/Redis/Passport · ClickHouse).
-- [ ] Architecture diagram (from §5) and a short "how it works" paragraph.
+- [x] Correct stack (Vite/React/Redux/TS · Express/Mongo/Redis/Passport · ClickHouse).
+- [x] Architecture diagram (from §5) and a short "how it works" paragraph.
 - [ ] Feature list with screenshots / demo GIF.
-- [ ] Local setup: `.env.example`, install, run (Docker + non-Docker).
-- [ ] Remove every "Note: Delete this note…" placeholder.
+- [x] Local setup: `.env.example`, install, run (Docker + non-Docker).
+- [x] Remove every "Note: Delete this note…" placeholder.
 
 ---
 
