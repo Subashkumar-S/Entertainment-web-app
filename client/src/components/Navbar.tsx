@@ -125,11 +125,18 @@ export default function Navbar() {
             <FaCircleUser className="h-6 w-6 sm:h-8 sm:w-8 lg:w-10 lg:h-10 text-white opacity-50 hover:opacity-100 hover:cursor-pointer" />
           </button>
           {showContextMenu && (
-            <div className="absolute left-10 top-full -mt-28 w-48 bg-semi-dark-blue text-white p-4 rounded shadow-lg z-10">
+            <div className="absolute left-10 top-full -mt-32 w-48 bg-semi-dark-blue text-white p-4 rounded shadow-lg z-10">
               <p className="font-semibold">{user.fullName}</p>
               <p className="text-sm">{user.email}</p>
+              <Link
+                to="/profile"
+                onClick={() => setShowContextMenu(false)}
+                className="block mt-3 py-2 text-center w-full bg-dark-blue rounded hover:bg-greyish-blue/30"
+              >
+                Your insights
+              </Link>
               <button
-                className="mt-4 py-2 w-full bg-red-600 rounded hover:bg-red-700"
+                className="mt-2 py-2 w-full bg-red-600 rounded hover:bg-red-700"
                 onClick={handleClick}
               >
                 Logout

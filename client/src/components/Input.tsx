@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaSearch, FaRegClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { trackEvent } from "../utils/track";
 
 interface SearchResult {
   id: number;
@@ -97,7 +98,9 @@ export default function Input() {
   };
 
   const goTo = (r: SearchResult) => {
-    recordSearch(query);
+    const term = query.trim();
+    recordSearch(term);
+    if (term.length >= 2) trackEvent({ type: "search", query: term });
     setOpen(false);
     setQuery("");
     setResults([]);

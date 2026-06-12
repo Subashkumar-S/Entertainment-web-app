@@ -8,6 +8,7 @@ import { RootState } from '../store/store';
 import { addFavorites, removeFavorites } from '../store/userSlice';
 import { MediaType } from '../types';
 import { useTrailer } from './TrailerModal';
+import { trackEvent } from '../utils/track';
 import api from '../api/axios';
 
 type CardProps = {
@@ -53,6 +54,7 @@ export const Card: React.FC<CardProps> = ({
       }
     } else {
       dispatch(addFavorites(id));
+      trackEvent({ type: 'bookmark', mediaType, titleId: id, title });
       try {
         await api.post('/favorites/addFavorite', { email, id });
       } catch (error) {

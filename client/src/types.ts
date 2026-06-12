@@ -80,3 +80,19 @@ export interface TitleDetailsData {
   };
   recommendations: RecommendationItem[];
 }
+
+// Matches the server's /insights payload (activity analytics dashboard).
+export interface ActivityPoint {
+  date: string;
+  view: number;
+  search: number;
+  bookmark: number;
+  total: number;
+}
+
+export interface InsightsData {
+  summary: { view: number; search: number; bookmark: number };
+  topGenres: { genre: string; count: number }[];
+  activity: ActivityPoint[];
+  recentTitles: { titleId: string; title: string; mediaType: MediaType }[];
+}

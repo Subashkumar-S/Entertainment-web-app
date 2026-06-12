@@ -14,6 +14,8 @@ import favoriteRoutes from "./routes/favoriteRoutes";
 import tmdbRoutes from "./routes/tmdbRoutes";
 import libraryRoutes from "./routes/libraryRoutes";
 import searchHistoryRoutes from "./routes/searchHistoryRoutes";
+import eventRoutes from "./routes/eventRoutes";
+import insightsRoutes from "./routes/insightsRoutes";
 
 const app = express();
 const sessionStore = new RedisStore({ client: redisClient });
@@ -69,6 +71,8 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/library", libraryRoutes);
 app.use("/api/search", searchHistoryRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/insights", insightsRoutes);
 app.use("/api/tmdb", tmdbRoutes);
 
 const start = async () => {

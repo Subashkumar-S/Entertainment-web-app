@@ -192,12 +192,12 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 
 ### Milestone 2 — Activity analytics _(1–2 days)_
 
-- [ ] `POST /api/events` ingestion endpoint (view, search, bookmark).
-- [ ] Storage: ClickHouse `events` table (Mongo collection fallback).
-- [ ] Client fires events on view / search / bookmark.
-- [ ] Aggregation endpoints: top genres, searches over time, bookmark trend.
-- [ ] "Your insights" dashboard (extend the Profile page) with charts (recharts).
-- [ ] In-app Trending row computed from events (#6).
+- [x] `POST /api/events` ingestion endpoint (view, search, bookmark).
+- [x] Storage: MongoDB `events` collection (the ClickHouse swap can sit behind the same ingestion/aggregation API later).
+- [x] Client fires events on view / search / bookmark (fire-and-forget `trackEvent`).
+- [x] Aggregation endpoints: summary, top genres, 14-day activity series, recent titles (`GET /api/insights`).
+- [x] "Your insights" dashboard at `/profile` (account menu → "Your insights") with dependency-free charts; recharts is an easy drop-in upgrade.
+- [ ] In-app Trending row computed from events (#6) — deferred; needs accumulated event data to be meaningful on a fresh DB.
 
 ### Milestone 3 — Richer product _(1–2 days)_
 

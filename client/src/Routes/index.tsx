@@ -6,6 +6,7 @@ import MoviesPage from "../pages/Movies";
 import TVSeriesPage from "../pages/TV_Series";
 import BookmarkPage from "../pages/Bookmark";
 import TitleDetailsPage from "../pages/TitleDetails";
+import ProfilePage from "../pages/Profile";
 import { ReactNode } from "react";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
@@ -18,7 +19,8 @@ const ProjectRoutes = () => {
         { path: "/movies", element: <ProtectedRoute element={<MoviesPage />} />},
         { path: "/tv-series", element: <ProtectedRoute element={<TVSeriesPage />} />},
         { path: "/bookmark", element: <ProtectedRoute element={<BookmarkPage />} />},
-        { path: "/title/:mediaType/:id", element: <ProtectedRoute element={<TitleDetailsPage />} />}
+        { path: "/title/:mediaType/:id", element: <ProtectedRoute element={<TitleDetailsPage />} />},
+        { path: "/profile", element: <ProtectedRoute element={<ProfilePage />} />}
     ])
 
     return element;

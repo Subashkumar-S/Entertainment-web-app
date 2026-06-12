@@ -56,6 +56,10 @@ session-based auth flow.
 - **Live search** — debounced multi-search dropdown with poster results, plus
   per-user **recent searches** stored in Redis (shown on focus, clearable).
 - **Recently viewed** — a device-local history row on Home.
+- **Activity insights** — a personal analytics dashboard (account menu → "Your
+  insights"): titles viewed, searches, bookmarks, top genres, and a 14-day
+  activity chart, all computed from your own interaction events via MongoDB
+  aggregation.
 - **Auth** — sign up / log in with a session cookie; protected routes; session
   rehydration via `/api/auth/me`.
 
@@ -76,9 +80,9 @@ with a Redis cache-aside layer and normalized into flat, client-ready shapes.
 Browser (React SPA)
       │  /api/*  (session cookie)
       ▼
-Express API  ──► MongoDB (users, library)
+Express API  ──► MongoDB (users, library, activity events)
       │
-      ├──► Redis  (sessions + TMDB cache-aside)
+      ├──► Redis  (sessions + TMDB cache-aside + recent searches)
       │
       └──► TMDB API  (proxied; keys never reach the client)
 ```
@@ -209,6 +213,8 @@ All routes are under `/api` and rate-limited.
 | `/api/favorites` | Add / remove bookmarks. |
 | `/api/library` | Watchlist, watched toggle, ratings. |
 | `/api/search` | Per-user recent searches in Redis (`recent`: get / record / clear). |
+| `/api/events` | Ingest a view / search / bookmark interaction event (fire-and-forget). |
+| `/api/insights` | Per-user analytics: summary counts, top genres, 14-day activity, recent titles (MongoDB aggregation). |
 | `/api/tmdb` | Proxied + cached + normalized TMDB: `trending`, `recommended`, `movies/popular`, `tv/popular`, `genres/:mediaType`, `discover/:mediaType`, `search`, `title/:mediaType/:id`, `title/:mediaType/:id/videos`, `tv/:id/season/:n`, and per-id detail/recommendation routes. |
 
 ## Deployment

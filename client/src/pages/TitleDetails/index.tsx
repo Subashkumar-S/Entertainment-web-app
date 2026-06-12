@@ -9,6 +9,7 @@ import { useTrailer } from "../../components/TrailerModal";
 import api from "../../api/axios";
 import { RootState } from "../../store/store";
 import { recordRecentlyViewed } from "../../utils/recentlyViewed";
+import { trackEvent } from "../../utils/track";
 import { SeasonSummary, TitleDetailsData } from "../../types";
 
 const formatRuntime = (mins: number) => {
@@ -46,6 +47,13 @@ export default function TitleDetailsPage() {
             rating: t.rating,
             posterPath: t.posterPath,
             backdropPath: t.backdropPath,
+          });
+          trackEvent({
+            type: "view",
+            mediaType: t.mediaType,
+            titleId: t.id,
+            title: t.title,
+            genres: t.genres,
           });
         }
       })
