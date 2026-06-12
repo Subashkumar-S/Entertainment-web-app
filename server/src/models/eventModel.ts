@@ -4,8 +4,8 @@ export type EventType = "view" | "search" | "bookmark";
 
 // One row per user interaction. Kept in its own collection (not on the user
 // document) so it stays append-only and cheap to aggregate. This is the Mongo
-// version of the ROADMAP's analytics store; a ClickHouse table could replace it
-// behind the same ingestion/aggregation API later.
+// analytics store; a ClickHouse table could replace it behind the same
+// ingestion/aggregation API later.
 export interface IEvent extends Document {
     userId: mongoose.Types.ObjectId;
     type: EventType;

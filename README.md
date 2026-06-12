@@ -11,9 +11,7 @@ session-based auth flow.
 
 > **On "streaming":** TMDB does not provide full-length video. The honest,
 > fully-TMDB-powered product is **browse → details → play trailer (YouTube embed)
-> → deep-link to real providers (JustWatch)**. See
-> [`STREAMING-PLAN.md`](./STREAMING-PLAN.md) for the design rationale and
-> [`ROADMAP.md`](./ROADMAP.md) for the longer-term plan.
+> → deep-link to real providers (JustWatch)**.
 
 ---
 
@@ -102,20 +100,20 @@ Express API  ──► MongoDB (users, library, activity events)
 .
 ├── client/                 # React + Vite SPA
 │   └── src/
-│       ├── components/      # Card, CardWrapper, TrailerModal, LibraryActions, …
-│       ├── pages/           # Home, Movies, TV_Series, Bookmark, TitleDetails, …
+│       ├── components/      # Card, TrailerModal, LibraryActions, GoogleSignInButton, …
+│       ├── pages/           # Home, Movies, TV_Series, Bookmark, TitleDetails, Profile, …
 │       ├── store/           # Redux Toolkit (user/library slice)
-│       └── utils/           # feed, recentlyViewed (+ unit tests)
+│       └── utils/           # feed, recentlyViewed, track (+ unit tests)
 ├── server/                 # Express + TypeScript API
 │   └── src/
-│       ├── controllers/     # auth, favorites, library, tmdb
+│       ├── controllers/     # auth, favorites, library, tmdb, events, insights, search
 │       ├── services/        # tmdbService (append_to_response, discover, …)
-│       ├── utils/           # cache, normalizeTitle (+ unit tests)
-│       └── routes/          # /api/auth, /api/favorites, /api/library, /api/tmdb
-├── deploy/                  # docker-compose for the full local stack
-├── .env.example            # single source of truth for all env vars
-├── STREAMING-PLAN.md        # details-page & streaming-surface design plan
-└── ROADMAP.md               # longer-term, backend-centric roadmap
+│       ├── models/          # user, event (Mongoose schemas)
+│       ├── utils/           # cache, normalizeTitle, insights, recentSearches (+ tests)
+│       └── routes/          # /api/{auth,favorites,library,search,events,insights,tmdb}
+├── deploy/                 # docker-compose for the full local stack
+├── .github/workflows/      # CI (lint · test · build)
+└── .env.example           # single source of truth for all env vars
 ```
 
 ## Getting started
