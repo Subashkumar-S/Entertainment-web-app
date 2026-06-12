@@ -1,116 +1,237 @@
-# Frontend Mentor - Entertainment web app solution
+# Entertainment Web App
 
-This is a solution to the [Entertainment web app challenge on Frontend Mentor](https://www.frontendmentor.io/challenges/entertainment-web-app-J-UhgAW1X). Frontend Mentor challenges help you improve your coding skills by building realistic project.
+A full-stack, TMDB-powered streaming-style web app. It started as the
+[Frontend Mentor "Entertainment web app" challenge](https://www.frontendmentor.io/challenges/entertainment-web-app-J-UhgAW1X)
+and grew into a complete application: browse trending titles, open rich
+movie/series detail pages, watch trailers in-app, see where to stream/rent/buy,
+and manage a personal library (bookmarks, watchlist, watched, ratings) behind a
+session-based auth flow.
+
+> **On "streaming":** TMDB does not provide full-length video. The honest,
+> fully-TMDB-powered product is **browse → details → play trailer (YouTube embed)
+> → deep-link to real providers (JustWatch)**. See
+> [`STREAMING-PLAN.md`](./STREAMING-PLAN.md) for the design rationale and
+> [`ROADMAP.md`](./ROADMAP.md) for the longer-term plan.
+
+---
 
 ## Table of contents
 
-- [Overview](#overview)
-  - [The challenge](#the-challenge)
-  - [Screenshot](#screenshot)
-  - [Links](#links)
-- [My process](#my-process)
-  - [Built with](#built-with)
-  - [What I learned](#what-i-learned)
-  - [Continued development](#continued-development)
-  - [Useful resources](#useful-resources)
-- [Author](#author)
-- [Acknowledgments](#acknowledgments)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Environment variables](#environment-variables)
+  - [Run locally (host Node + Docker data stores)](#run-locally-host-node--docker-data-stores)
+  - [Run the full stack in Docker](#run-the-full-stack-in-docker)
+- [Scripts](#scripts)
+- [Testing](#testing)
+- [API overview](#api-overview)
+- [Deployment](#deployment)
+- [Accessibility & performance](#accessibility--performance)
+- [Attribution](#attribution)
 
-**Note: Delete this note and update the table of contents based on what sections you keep.**
+---
 
-## Overview
+## Features
 
-### The challenge
+- **Browse** — trending row, popular Movies and TV Series pages, genre-filter
+  chips, and "Load more" pagination.
+- **Title details** (`/title/:mediaType/:id`) — responsive hero, poster, meta
+  row (year · type · runtime/seasons · certification · rating), genres, overview,
+  top cast, season/episode browser for series, "More like this" recommendations.
+- **Trailers** — every Play affordance opens an in-app YouTube trailer modal
+  (focus-trapped, Esc/overlay to close, background-scroll locked).
+- **Where to watch** — streaming/rent/buy provider logos that deep-link to
+  JustWatch for the title.
+- **Personal library** — bookmark, watchlist, watched, and 1–5★ ratings, wired to
+  the backend and rehydrated on refresh; the Bookmarks page has Bookmarks /
+  Watchlist tabs with empty states.
+- **Recommended for you** — a blended popular feed that is personalized from your
+  most recent bookmark, so the row is never empty.
+- **Live search** — debounced multi-search dropdown with poster results.
+- **Recently viewed** — a device-local history row on Home.
+- **Auth** — sign up / log in with a session cookie; protected routes; session
+  rehydration via `/api/auth/me`.
 
-Users should be able to:
+## Tech stack
 
-- View the optimal layout for the app depending on their device's screen size
-- See hover states for all interactive elements on the page
-- Navigate between Home, Movies, TV Series, and Bookmarked Shows pages
-- Add/Remove bookmarks from all movies and TV series
-- Search for relevant shows on all pages
-- **Bonus**: Build this project as a full-stack application
-- **Bonus**: If you're building a full-stack app, we provide authentication screen (sign-up/login) designs if you'd like to create an auth flow
+**Client** — Vite · React 18 · TypeScript · Redux Toolkit · React Router v6 ·
+axios · Tailwind CSS · react-icons.
 
-### Screenshot
+**Server** — Express · TypeScript · Mongoose / MongoDB · Passport (local) +
+express-session · connect-redis / ioredis · pino. TMDB is proxied server-side
+with a Redis cache-aside layer and normalized into flat, client-ready shapes.
 
-![](./screenshot.jpg)
+**Tooling** — Vitest (unit tests) · ESLint · Docker Compose (MongoDB + Redis).
 
-Add a screenshot of your solution. The easiest way to do this is to use Firefox to view your project, right-click the page and select "Take a Screenshot". You can choose either a full-height screenshot or a cropped one based on how long the page is. If it's very long, it might be best to crop it.
+## Architecture
 
-Alternatively, you can use a tool like [FireShot](https://getfireshot.com/) to take the screenshot. FireShot has a free option, so you don't need to purchase it. 
-
-Then crop/optimize/edit your image however you like, add it to your project, and update the file path in the image above.
-
-**Note: Delete this note and the paragraphs above when you add your screenshot. If you prefer not to add a screenshot, feel free to remove this entire section.**
-
-### Links
-
-- Solution URL: [Add solution URL here](https://your-solution-url.com)
-- Live Site URL: [Add live site URL here](https://your-live-site-url.com)
-
-## My process
-
-### Built with
-
-- Semantic HTML5 markup
-- CSS custom properties
-- Flexbox
-- CSS Grid
-- Mobile-first workflow
-- [React](https://reactjs.org/) - JS library
-- [Next.js](https://nextjs.org/) - React framework
-- [Styled Components](https://styled-components.com/) - For styles
-
-**Note: These are just examples. Delete this note and replace the list above with your own choices**
-
-### What I learned
-
-Use this section to recap over some of your major learnings while working through this project. Writing these out and providing code samples of areas you want to highlight is a great way to reinforce your own knowledge.
-
-To see how you can add code snippets, see below:
-
-```html
-<h1>Some HTML code I'm proud of</h1>
 ```
-```css
-.proud-of-this-css {
-  color: papayawhip;
-}
-```
-```js
-const proudOfThisFunc = () => {
-  console.log('🎉')
-}
+Browser (React SPA)
+      │  /api/*  (session cookie)
+      ▼
+Express API  ──► MongoDB (users, library)
+      │
+      ├──► Redis  (sessions + TMDB cache-aside)
+      │
+      └──► TMDB API  (proxied; keys never reach the client)
 ```
 
-If you want more help with writing markdown, we'd recommend checking out [The Markdown Guide](https://www.markdownguide.org/) to learn more.
+- The **TMDB API key lives only on the server**; the client always talks to
+  `/api/tmdb/*`, never to TMDB directly.
+- TMDB responses are **cached in Redis** (per-resource TTLs) and **normalized**
+  on the server (e.g. `normalizeTitle`) so the client renders one predictable
+  shape and cache entries stay small.
+- Sessions are stored in Redis; auth state is rehydrated on load via
+  `/api/auth/me`.
 
-**Note: Delete this note and the content within this section and replace with your own learnings.**
+## Repository layout
 
-### Continued development
+```
+.
+├── client/                 # React + Vite SPA
+│   └── src/
+│       ├── components/      # Card, CardWrapper, TrailerModal, LibraryActions, …
+│       ├── pages/           # Home, Movies, TV_Series, Bookmark, TitleDetails, …
+│       ├── store/           # Redux Toolkit (user/library slice)
+│       └── utils/           # feed, recentlyViewed (+ unit tests)
+├── server/                 # Express + TypeScript API
+│   └── src/
+│       ├── controllers/     # auth, favorites, library, tmdb
+│       ├── services/        # tmdbService (append_to_response, discover, …)
+│       ├── utils/           # cache, normalizeTitle (+ unit tests)
+│       └── routes/          # /api/auth, /api/favorites, /api/library, /api/tmdb
+├── deploy/                  # docker-compose for the full local stack
+├── .env.example            # single source of truth for all env vars
+├── STREAMING-PLAN.md        # details-page & streaming-surface design plan
+└── ROADMAP.md               # longer-term, backend-centric roadmap
+```
 
-Use this section to outline areas that you want to continue focusing on in future projects. These could be concepts you're still not completely comfortable with or techniques you found useful that you want to refine and perfect.
+## Getting started
 
-**Note: Delete this note and the content within this section and replace with your own plans for continued development.**
+### Prerequisites
 
-### Useful resources
+- Node.js 20+ and npm
+- A free **TMDB v3 API key** — https://www.themoviedb.org/settings/api
+- Docker (for MongoDB + Redis), or your own MongoDB and Redis instances
 
-- [Example resource 1](https://www.example.com) - This helped me for XYZ reason. I really liked this pattern and will use it going forward.
-- [Example resource 2](https://www.example.com) - This is an amazing article which helped me finally understand XYZ. I'd recommend it to anyone still learning this concept.
+### Environment variables
 
-**Note: Delete this note and replace the list above with resources that helped you during the challenge. These could come in handy for anyone viewing your solution or for yourself when you look back on this project in the future.**
+There is **one `.env` at the repo root** — read by the server, the client (Vite),
+and Docker Compose. Copy the template and fill in the secrets:
 
-## Author
+```bash
+cp .env.example .env
+```
 
-- Website - [Add your name here](https://www.your-site.com)
-- Frontend Mentor - [@yourusername](https://www.frontendmentor.io/profile/yourusername)
-- Twitter - [@yourusername](https://www.twitter.com/yourusername)
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `SECRET` | yes | — | Long random string; signs the session cookie. |
+| `TMDB_API_KEY` | yes | — | TMDB v3 key. `/api/tmdb/*` returns 502 until set. |
+| `PORT` | no | `5000` | API port. |
+| `CLIENT_ORIGIN` | no | `http://localhost:5173,http://localhost:3000` | CORS allowlist (comma-separated). |
+| `VITE_API_BASE_URL` | no | `http://localhost:5000/api` | Where the client sends API calls. |
+| `MONGODB_URI` | no | `mongodb://localhost:27017/entertainment` | Set to Atlas in prod. |
+| `REDIS_URL` | no | `redis://localhost:6379` | Set to managed Redis in prod. |
+| `NODE_ENV` | no | — | Set `production` to enable Secure/SameSite=None cookies and make secrets mandatory. |
 
-**Note: Delete this note and add/remove/edit lines above based on what links you'd like to share.**
+> The `.env` file is gitignored — **never commit real secrets**. Only
+> `.env.example` placeholders are tracked.
 
-## Acknowledgments
+### Run locally (host Node + Docker data stores)
 
-This is where you can give a hat tip to anyone who helped you out on this project. Perhaps you worked in a team or got some inspiration from someone else's solution. This is the perfect place to give them some credit.
+Start just MongoDB and Redis in Docker, and run the app on your host:
 
-**Note: Delete this note and edit this section's content as necessary. If you completed this challenge by yourself, feel free to delete this section entirely.**
+```bash
+# 1. data stores
+cd deploy && docker compose -f docker-compose.dev.yml up -d
+
+# 2. API  (new terminal, from repo root)
+cd server && npm install && npm run dev      # http://localhost:5000
+
+# 3. client  (new terminal, from repo root)
+cd client && npm install && npm run dev       # http://localhost:5173
+```
+
+### Run the full stack in Docker
+
+Build and run client + server + MongoDB + Redis together:
+
+```bash
+cd deploy
+docker compose up --build
+# client → http://localhost:3000 , api → http://localhost:5000
+```
+
+`SECRET` and `TMDB_API_KEY` must be set in the root `.env` or Compose refuses to
+start. Mongo/Redis persist to bind mounts under `deploy/volumes/`.
+
+## Scripts
+
+Run from `client/` or `server/`:
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the dev server (Vite / nodemon). |
+| `npm run build` | Production build (`tsc` typecheck + `vite build` on the client). |
+| `npm test` | Run the Vitest unit suite once. |
+| `npm run test:watch` | Vitest in watch mode. |
+| `npm run lint` | ESLint (client). |
+
+## Testing
+
+Unit tests use **Vitest** and run in a lightweight node environment (no DB or
+network):
+
+```bash
+cd server && npm test    # normalizeTitle / pickTrailer
+cd client && npm test    # feed (recommendations fallback) / recentlyViewed
+```
+
+The tests cover the two trickiest pure-logic pieces: the server's TMDB
+**details normalizer** (movie vs TV shape, certification source, trailer
+selection priority, `similar` fallback, provider mapping) and the client's
+**recommendations-fallback** blend plus the recently-viewed history rules.
+
+## API overview
+
+All routes are under `/api` and rate-limited.
+
+| Prefix | Purpose |
+|---|---|
+| `/api/auth` | `signup`, `login`, `logout`, `me` (session rehydration). |
+| `/api/favorites` | Add / remove bookmarks. |
+| `/api/library` | Watchlist, watched toggle, ratings. |
+| `/api/tmdb` | Proxied + cached + normalized TMDB: `trending`, `recommended`, `movies/popular`, `tv/popular`, `genres/:mediaType`, `discover/:mediaType`, `search`, `title/:mediaType/:id`, `title/:mediaType/:id/videos`, `tv/:id/season/:n`, and per-id detail/recommendation routes. |
+
+## Deployment
+
+- **Data stores:** point `MONGODB_URI` at MongoDB Atlas and `REDIS_URL` at a
+  managed Redis (Upstash, Render, etc.) — no code or compose change needed.
+- **Server:** set `NODE_ENV=production` (enables Secure + SameSite=None auth
+  cookies and makes `SECRET`/`TMDB_API_KEY` mandatory), then `npm run build` and
+  `npm run serve`, or build the `server/` Docker image.
+- **Client:** `npm run build` produces a static `dist/` to serve from any static
+  host/CDN; set `VITE_API_BASE_URL` to the deployed API origin at build time.
+- **CORS:** add the deployed client origin to `CLIENT_ORIGIN`.
+
+## Accessibility & performance
+
+- Off-screen images use `loading="lazy"` + `decoding="async"`; the detail hero
+  stays eager as the LCP image.
+- Cards are keyboard-operable (`role="button"`, `tabIndex`, Enter/Space), nav
+  icons have accessible names, and a global `:focus-visible` ring makes keyboard
+  focus visible everywhere.
+- The trailer modal uses `role="dialog"` / `aria-modal`, traps Tab focus, closes
+  on Esc/overlay, locks background scroll, and restores focus on close.
+
+## Attribution
+
+- This product uses the **TMDB API** but is not endorsed or certified by TMDB.
+  Movie/TV data and images © [The Movie Database](https://www.themoviedb.org/).
+- "Where to watch" data is **powered by JustWatch**.
+- Original challenge by [Frontend Mentor](https://www.frontendmentor.io). Their
+  design files are not redistributed in this repo (see `.gitignore`).

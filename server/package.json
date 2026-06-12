@@ -6,6 +6,8 @@
     "start": "node index.js",
     "build": "tsc",
     "serve": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "nodemon --watch src --ext ts,json --exec \"ts-node src/index.ts\""
   },
   "keywords": [],
@@ -22,7 +24,8 @@
     "@types/passport-local": "^1.0.38",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@types/ioredis": "^5.0.0",

@@ -68,11 +68,22 @@ export const TrendingCard: React.FC<CardProps> = ({
     <div
       className="relative w-[240px] h-[140px] md:w-[470px] md:h-[230px] font-outfit group rounded-lg overflow-hidden cursor-pointer"
       onClick={openDetails}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openDetails();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${title} details`}
     >
       <div className="absolute inset-0 flex items-center justify-center">
         <img
           src={thumbnail}
           alt={title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover object-center"
         />
       </div>

@@ -148,10 +148,11 @@ TMDB has no full content, so "play" must resolve to one of:
 
 ## Phase 6 — Polish & ship (½ day)
 
-- [ ] Skeletons + empty/error states everywhere; image `loading="lazy"`.
-- [ ] Basic a11y pass (focus rings, alt text, modal semantics, keyboard nav).
-- [ ] A few Vitest tests (details normalizer, recommendations fallback) — ties into ROADMAP M4.
-- [ ] Update README + screenshots; deploy.
+- [x] Skeletons + empty/error states everywhere; image `loading="lazy"` (+ `decoding="async"`; detail hero stays eager as the LCP image).
+- [x] Basic a11y pass: keyboard-operable cards (`role`/`tabindex`/Enter-Space), accessible names on icon nav links, keyboard-operable account menu, global `:focus-visible` ring, trailer modal focus-trap + focus restore.
+- [x] Vitest tests — server `normalizeTitle`/`pickTrailer` (details normalizer) and client `feed` (recommendations fallback) + `recentlyViewed`. `npm test` in each package; 33 tests.
+- [x] Rewrote README (full-stack overview, env, run, scripts, API, deploy, a11y, attribution).
+- [ ] _Manual (needs the user):_ add screenshots and run the actual deploy (creds/host required).
 
 ---
 

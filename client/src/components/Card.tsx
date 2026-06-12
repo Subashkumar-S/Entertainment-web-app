@@ -67,11 +67,22 @@ export const Card: React.FC<CardProps> = ({
     <div
       className="w-[164px] h-[110px] md:w-[220px] md:h-[140px] lg:w-[280px] lg:h-[174px] font-outfit relative group cursor-pointer"
       onClick={openDetails}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openDetails();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${title} details`}
     >
       <div className="w-full h-full flex items-start relative">
         <img
           src={thumbnail}
           alt={title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full rounded-lg object-cover"
         />
         <button

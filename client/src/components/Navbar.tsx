@@ -50,6 +50,8 @@ export default function Navbar() {
           <li>
             <Link
               to="/"
+              aria-label="Home"
+              aria-current={location.pathname === "/" ? "page" : undefined}
               className={
                 location.pathname === "/"
                   ? "text-white opacity-100"
@@ -62,6 +64,8 @@ export default function Navbar() {
           <li>
             <Link
               to="/movies"
+              aria-label="Movies"
+              aria-current={location.pathname === "/movies" ? "page" : undefined}
               className={
                 location.pathname === "/movies"
                   ? "text-white opacity-100"
@@ -74,6 +78,8 @@ export default function Navbar() {
           <li>
             <Link
               to="/tv-series"
+              aria-label="TV Series"
+              aria-current={location.pathname === "/tv-series" ? "page" : undefined}
               className={
                 location.pathname === "/tv-series"
                   ? "text-white opacity-100"
@@ -86,6 +92,8 @@ export default function Navbar() {
           <li>
             <Link
               to="/bookmark"
+              aria-label="Bookmarked shows"
+              aria-current={location.pathname === "/bookmark" ? "page" : undefined}
               className={
                 location.pathname === "/bookmark"
                   ? "text-white opacity-100"
@@ -99,9 +107,22 @@ export default function Navbar() {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setShowContextMenu(false);
+            }
+          }}
           className="relative"
         >
-          <FaCircleUser className="h-6 w-6 sm:h-8 sm:w-8 lg:w-10 lg:h-10 text-white opacity-50 hover:opacity-100 hover:cursor-pointer" />
+          <button
+            type="button"
+            aria-label="Account menu"
+            aria-haspopup="menu"
+            aria-expanded={showContextMenu}
+            onClick={() => setShowContextMenu((open) => !open)}
+          >
+            <FaCircleUser className="h-6 w-6 sm:h-8 sm:w-8 lg:w-10 lg:h-10 text-white opacity-50 hover:opacity-100 hover:cursor-pointer" />
+          </button>
           {showContextMenu && (
             <div className="absolute left-10 top-full -mt-28 w-48 bg-semi-dark-blue text-white p-4 rounded shadow-lg z-10">
               <p className="font-semibold">{user.fullName}</p>

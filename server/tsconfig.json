@@ -11,5 +11,5 @@
   "typeRoots": ["node_modules/@types", "./types"],
   "types": ["node"],
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/**/*.test.ts", "vitest.config.ts"]
 }

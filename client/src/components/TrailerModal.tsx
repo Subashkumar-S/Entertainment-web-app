@@ -33,6 +33,8 @@ type State =
 export function TrailerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>({ status: "closed" });
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
 
   const play = useCallback(async (mediaType: MediaType, id: string, title?: string) => {
     setState({ status: "loading", title });
@@ -51,12 +53,34 @@ export function TrailerProvider({ children }: { children: ReactNode }) {
   const close = useCallback(() => setState({ status: "closed" }), []);
   const isOpen = state.status !== "closed";
 
-  // Esc to close, lock background scroll, and move focus into the dialog.
+  // Esc to close, lock background scroll, trap focus, and restore it on close.
   useEffect(() => {
     if (!isOpen) return;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        close();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      // Keep Tab focus within the dialog.
+      const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, a[href], iframe, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -64,6 +88,7 @@ export function TrailerProvider({ children }: { children: ReactNode }) {
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      previouslyFocused.current?.focus();
     };
   }, [isOpen, close]);
 
@@ -72,6 +97,7 @@ export function TrailerProvider({ children }: { children: ReactNode }) {
       {children}
       {isOpen && (
         <div
+          ref={dialogRef}
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 font-outfit"
           onClick={close}
           role="dialog"

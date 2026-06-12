@@ -131,6 +131,7 @@ function Details({
               <img
                 src={data.posterPath}
                 alt={data.title}
+                decoding="async"
                 className="w-28 md:w-44 lg:w-52 rounded-lg shadow-lg"
               />
             ) : (
@@ -202,6 +203,8 @@ function Details({
                     <img
                       src={c.profilePath}
                       alt={c.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-24 h-24 rounded-full object-cover mx-auto"
                     />
                   ) : (
@@ -313,6 +316,8 @@ function SeasonsSection({ tvId, seasons }: { tvId: string; seasons: SeasonSummar
                 <img
                   src={`https://image.tmdb.org/t/p/w300${ep.still_path}`}
                   alt={ep.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-32 h-20 object-cover rounded shrink-0"
                 />
               ) : (
@@ -359,6 +364,8 @@ function WhereToWatch({ providers }: { providers: TitleDetailsData["providers"] 
                     src={p.logoPath}
                     alt={p.name}
                     title={p.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-10 h-10 rounded-lg"
                   />
                 ) : (

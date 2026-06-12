@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base{
+    /* Keyboard-only focus ring for interactive elements (cards use role/tabindex). */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible{
+        outline: 2px solid #fc4747;
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+}
+
 @layer components{
     .input{
         @apply w-full bg-transparent border-b-[1px] border-solid border-greyish-blue outline-none pb-4 pl-4  hover:border-white hover:cursor-pointer

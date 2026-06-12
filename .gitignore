@@ -37,3 +37,6 @@ __MACOSX/
 *.njsproj
 *.sln
 *.sw?
+
+# Vitest coverage
+coverage

@@ -5,24 +5,9 @@ import api from "../api/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { Genre, RegularDataItem } from "../types";
+import { tag, dedupeById, blendRecommendations } from "../utils/feed";
 
 type MediaType = "movie" | "tv";
-
-// Tag raw TMDB results with a known media_type so the card shows the right
-// icon/label and links to the correct details route. Results that already carry
-// a media_type (e.g. the blended /recommended feed) keep theirs.
-const tag = (results: RegularDataItem[], mediaType: MediaType): RegularDataItem[] =>
-  results.map((item) => ({ ...item, media_type: (item.media_type as MediaType) || mediaType }));
-
-const dedupeById = (items: RegularDataItem[]): RegularDataItem[] => {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    const id = String(item.id);
-    if (seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
-};
 
 // Favorites don't store a media_type yet, so personalize off the most recent
 // bookmark by trying movie recommendations first, then tv.
@@ -115,7 +100,7 @@ export const CardWrapper: React.FC = () => {
         personalized = await fetchSeedRecommendations(favorites[favorites.length - 1]);
       }
       const recommended: RegularDataItem[] = (await recommendedReq).data?.results ?? [];
-      if (active) setItems(dedupeById([...personalized, ...recommended]));
+      if (active) setItems(blendRecommendations(personalized, recommended));
     })().catch((e) => console.error("Error loading recommended:", e));
     return () => {
       active = false;

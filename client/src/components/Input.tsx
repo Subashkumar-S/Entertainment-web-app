@@ -101,7 +101,13 @@ export default function Input() {
                 className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-greyish-blue/20"
               >
                 {poster ? (
-                  <img src={poster} alt={title} className="w-10 h-14 object-cover rounded" />
+                  <img
+                    src={poster}
+                    alt={title}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-10 h-14 object-cover rounded"
+                  />
                 ) : (
                   <div className="w-10 h-14 rounded bg-dark-blue shrink-0" />
                 )}
