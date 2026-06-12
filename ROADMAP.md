@@ -197,7 +197,7 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 - [x] Client fires events on view / search / bookmark (fire-and-forget `trackEvent`).
 - [x] Aggregation endpoints: summary, top genres, 14-day activity series, recent titles (`GET /api/insights`).
 - [x] "Your insights" dashboard at `/profile` (account menu → "Your insights") with dependency-free charts; recharts is an easy drop-in upgrade.
-- [ ] In-app Trending row computed from events (#6) — deferred; needs accumulated event data to be meaningful on a fresh DB.
+- [x] In-app Trending row computed from events (#6) — `GET /api/insights/trending` scores views + 2×bookmarks across users (14-day window), enriches via cached TMDB data, and falls back to TMDB global trending when community data is sparse (keeps a fresh DB populated).
 
 ### Milestone 3 — Richer product _(1–2 days)_
 

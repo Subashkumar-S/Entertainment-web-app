@@ -3,66 +3,50 @@ import api from '../api/axios';
 import { TrendingCard } from "./TrendingCard";
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { RegularDataItem } from '../types';
+import { RecommendationItem } from '../types';
 
+// Trending is computed server-side from real interaction events (most-viewed /
+// most-bookmarked), and falls back to TMDB's global trending when there isn't
+// enough community data yet. Either way the server returns normalized cards.
 export const TrendingWrapper: React.FC = () => {
-  const [trendingMovies, setTrendingMovies] = useState<RegularDataItem[]>([]);
-  const bookmarkedMovies = useSelector((state: RootState) => state.user.favorites);
+  const [items, setItems] = useState<RecommendationItem[]>([]);
+  const [source, setSource] = useState<'community' | 'tmdb'>('tmdb');
+  const bookmarked = useSelector((state: RootState) => state.user.favorites);
 
   useEffect(() => {
-    const fetchTrendingMovies = async () => {
-      try {
-        const response = await api.get(`/tmdb/trending`);
-
-        const movies: RegularDataItem[] = response.data.results.map((item : RegularDataItem) => {
-          const thumbnail = item.backdrop_path
-            ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}`
-            : item.poster_path
-            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-            : ''; 
-
-          return {
-            id: item.id.toString(),
-            original_name: item.original_name || '',
-            original_title: item.original_title || '',
-            first_air_date: item.first_air_date || '',
-            release_date: item.release_date || '',
-            backdrop_path: item.backdrop_path || '',
-            poster_path: thumbnail,
-            vote_average: typeof item.vote_average === 'number' ? item.vote_average : 0,
-            category: item.media_type === 'movie' ? 'Movie' : 'TV Series',
-            media_type: item.media_type === 'tv' ? 'tv' : 'movie',
-          };
-        });
-
-        setTrendingMovies(movies);
-      } catch (error) {
-        console.error('Failed to fetch trending movies', error);
-      }
+    let active = true;
+    api
+      .get('/insights/trending')
+      .then((res) => {
+        if (!active) return;
+        setItems(res.data?.results ?? []);
+        setSource(res.data?.source === 'community' ? 'community' : 'tmdb');
+      })
+      .catch((error) => console.error('Failed to fetch trending', error));
+    return () => {
+      active = false;
     };
-
-    fetchTrendingMovies();
   }, []);
+
+  if (items.length === 0) return null;
 
   return (
     <div className="min-h-60 md:min-h-[40vh] overflow-x-scroll font-outfit">
-      <h4 className="text-2xl md:text-3xl text-white pb-6">Trending</h4>
+      <h4 className="text-2xl md:text-3xl text-white pb-6">
+        {source === 'community' ? 'Trending in the community' : 'Trending'}
+      </h4>
       <div className="flex gap-10 w-fit">
-        {trendingMovies.map(movie => (
+        {items.map((item) => (
           <TrendingCard
-            key={movie.id}
-            id={movie.id}
-            mediaType={movie.media_type === 'tv' ? 'tv' : 'movie'}
-            title={movie.original_name || movie.original_title || ""}
-            year={
-              (movie.first_air_date && new Date(movie.first_air_date).getFullYear().toString()) ||
-              (movie.release_date && new Date(movie.release_date).getFullYear().toString()) ||
-              ""
-            }
-            category={movie.category || ""}
-            thumbnail={movie.poster_path || ""}
-            rating={movie.vote_average}
-            bookmark={bookmarkedMovies.includes(movie.id)}
+            key={`${item.mediaType}-${item.id}`}
+            id={item.id}
+            mediaType={item.mediaType}
+            title={item.title}
+            year={item.year}
+            category={item.mediaType === 'tv' ? 'TV Series' : 'Movie'}
+            thumbnail={item.backdropPath || item.posterPath || ''}
+            rating={item.rating}
+            bookmark={bookmarked.includes(item.id)}
           />
         ))}
       </div>

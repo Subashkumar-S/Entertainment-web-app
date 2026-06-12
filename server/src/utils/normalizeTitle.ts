@@ -51,7 +51,7 @@ export interface NormalizedTitle {
 
 const yearOf = (date: string) => (date ? new Date(date).getFullYear().toString() : "");
 
-const normalizeCard = (item: any): NormalizedCard => {
+export const normalizeCard = (item: any): NormalizedCard => {
     const date = item.release_date || item.first_air_date || "";
     const mediaType: MediaType = item.media_type === "tv" || (!item.title && item.name) ? "tv" : "movie";
     return {

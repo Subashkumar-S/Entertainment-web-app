@@ -39,8 +39,9 @@ session-based auth flow.
 
 ## Features
 
-- **Browse** — trending row, popular Movies and TV Series pages, genre-filter
-  chips, and "Load more" pagination.
+- **Browse** — a Trending row computed from real community activity (with a TMDB
+  fallback), popular Movies and TV Series pages, genre-filter chips, and "Load
+  more" pagination.
 - **Title details** (`/title/:mediaType/:id`) — responsive hero, poster, meta
   row (year · type · runtime/seasons · certification · rating), genres, overview,
   top cast, season/episode browser for series, "More like this" recommendations.
@@ -214,7 +215,7 @@ All routes are under `/api` and rate-limited.
 | `/api/library` | Watchlist, watched toggle, ratings. |
 | `/api/search` | Per-user recent searches in Redis (`recent`: get / record / clear). |
 | `/api/events` | Ingest a view / search / bookmark interaction event (fire-and-forget). |
-| `/api/insights` | Per-user analytics: summary counts, top genres, 14-day activity, recent titles (MongoDB aggregation). |
+| `/api/insights` | Per-user analytics (summary, top genres, 14-day activity, recent titles) + `trending` computed from real events across users, with a TMDB fallback. |
 | `/api/tmdb` | Proxied + cached + normalized TMDB: `trending`, `recommended`, `movies/popular`, `tv/popular`, `genres/:mediaType`, `discover/:mediaType`, `search`, `title/:mediaType/:id`, `title/:mediaType/:id/videos`, `tv/:id/season/:n`, and per-id detail/recommendation routes. |
 
 ## Deployment
