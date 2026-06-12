@@ -18,6 +18,9 @@ interface TrailerContextValue {
 
 const TrailerContext = createContext<TrailerContextValue | null>(null);
 
+// The provider and its hook intentionally live together; the hook export is the
+// one non-component export, which only affects React Fast Refresh in dev.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTrailer = (): TrailerContextValue => {
   const ctx = useContext(TrailerContext);
   if (!ctx) throw new Error("useTrailer must be used within a TrailerProvider");

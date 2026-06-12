@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import logo from "/logo.svg";
 import { useState } from "react";
+import axios from "axios";
 import api from "../../api/axios";
 import { setUser } from "../../store/userSlice";
 import { useDispatch } from "react-redux";
@@ -33,12 +34,12 @@ export default function LoginPage() {
                 navigate("/");
             } 
 
-        } catch (error : any) {
-            if(!error.response || !error.response.data){
-                setServerError("An unexpected error occurred. Please try again later.");
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.data) {
+                setServerError(error.response.data.message);
                 return;
             }
-            setServerError(error.response.data.message);
+            setServerError("An unexpected error occurred. Please try again later.");
         }
     };
 

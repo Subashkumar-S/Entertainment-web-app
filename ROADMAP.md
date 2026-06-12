@@ -204,13 +204,13 @@ Everything in [§2](#2-critical-issues-to-fix-first): rotate secrets, stop track
 - [ ] Extend favorites → watchlist + watched + rating (model + endpoints).
 - [ ] UI: rating control, watched toggle, dedicated watchlist page.
 - [ ] "Because you bookmarked…" recommendations row.
-- [ ] Infinite scroll on browse pages; recent-searches + autocomplete via Redis.
+- [x] Infinite scroll/pagination on browse pages ("Load more"); per-user recent-searches via Redis (`/api/search/recent`) surfaced in the search dropdown.
 
 ### Milestone 4 — Polish & ship _(1 day)_
 
 - [ ] Rewrite the README (see §7).
 - [ ] Add screenshots / a short demo GIF.
-- [ ] Vitest tests (auth, favorites, cache) + GitHub Actions CI badge.
+- [x] Vitest tests (normalizer, recommendations feed, recently-viewed, recent-search merge) + GitHub Actions CI (lint · test · build for client & server) with a status badge.
 - [ ] Deploy (see §6) and set env vars in each dashboard.
 - [ ] Update the portfolio's project entry to the real live link.
 - [ ] _(Optional)_ Google OAuth.

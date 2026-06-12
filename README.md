@@ -1,5 +1,7 @@
 # Entertainment Web App
 
+[![CI](https://github.com/Subashkumar-S/Entertainment-web-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Subashkumar-S/Entertainment-web-app/actions/workflows/ci.yml)
+
 A full-stack, TMDB-powered streaming-style web app. It started as the
 [Frontend Mentor "Entertainment web app" challenge](https://www.frontendmentor.io/challenges/entertainment-web-app-J-UhgAW1X)
 and grew into a complete application: browse trending titles, open rich
@@ -51,7 +53,8 @@ session-based auth flow.
   Watchlist tabs with empty states.
 - **Recommended for you** — a blended popular feed that is personalized from your
   most recent bookmark, so the row is never empty.
-- **Live search** — debounced multi-search dropdown with poster results.
+- **Live search** — debounced multi-search dropdown with poster results, plus
+  per-user **recent searches** stored in Redis (shown on focus, clearable).
 - **Recently viewed** — a device-local history row on Home.
 - **Auth** — sign up / log in with a session cookie; protected routes; session
   rehydration via `/api/auth/me`.
@@ -205,6 +208,7 @@ All routes are under `/api` and rate-limited.
 | `/api/auth` | `signup`, `login`, `logout`, `me` (session rehydration). |
 | `/api/favorites` | Add / remove bookmarks. |
 | `/api/library` | Watchlist, watched toggle, ratings. |
+| `/api/search` | Per-user recent searches in Redis (`recent`: get / record / clear). |
 | `/api/tmdb` | Proxied + cached + normalized TMDB: `trending`, `recommended`, `movies/popular`, `tv/popular`, `genres/:mediaType`, `discover/:mediaType`, `search`, `title/:mediaType/:id`, `title/:mediaType/:id/videos`, `tv/:id/season/:n`, and per-id detail/recommendation routes. |
 
 ## Deployment

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaRegClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
@@ -17,9 +17,12 @@ export default function Input() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [recent, setRecent] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const typing = query.trim().length >= 2;
 
   // Debounced multi-search; only movies/tv (person results have no details page).
   useEffect(() => {
@@ -58,12 +61,51 @@ export default function Input() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // Per-user recent searches live in Redis behind the session cookie.
+  const loadRecent = async () => {
+    try {
+      const { data } = await api.get("/search/recent");
+      setRecent(Array.isArray(data?.searches) ? data.searches : []);
+    } catch {
+      setRecent([]);
+    }
+  };
+
+  const recordSearch = async (term: string) => {
+    const q = term.trim();
+    if (q.length < 2) return;
+    try {
+      const { data } = await api.post("/search/recent", { query: q });
+      if (Array.isArray(data?.searches)) setRecent(data.searches);
+    } catch {
+      /* recent searches are a nicety — ignore failures */
+    }
+  };
+
+  const clearRecent = async () => {
+    setRecent([]);
+    try {
+      await api.delete("/search/recent");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const onFocus = () => {
+    setOpen(true);
+    loadRecent();
+  };
+
   const goTo = (r: SearchResult) => {
+    recordSearch(query);
     setOpen(false);
     setQuery("");
     setResults([]);
     navigate(`/title/${r.media_type}/${r.id}`);
   };
+
+  const showRecent = !typing && recent.length > 0;
+  const showDropdown = open && (typing || showRecent);
 
   return (
     <div ref={containerRef} className="relative font-outfit">
@@ -73,54 +115,81 @@ export default function Input() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={onFocus}
           placeholder="Search for movies or TV series"
+          aria-label="Search for movies or TV series"
           className="w-full outline-none border-none bg-transparent text-white placeholder:text-greyish-blue"
         />
       </div>
 
-      {open && query.trim().length >= 2 && (
+      {showDropdown && (
         <div className="absolute z-40 mt-3 w-full max-w-2xl bg-semi-dark-blue rounded-lg shadow-xl max-h-[60vh] overflow-y-auto">
-          {loading && results.length === 0 && (
-            <p className="px-4 py-3 text-greyish-blue text-sm">Searching…</p>
+          {showRecent ? (
+            <>
+              <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                <span className="text-greyish-blue text-xs uppercase tracking-wide">Recent searches</span>
+                <button
+                  onClick={clearRecent}
+                  className="text-greyish-blue text-xs hover:text-white"
+                >
+                  Clear
+                </button>
+              </div>
+              {recent.map((term) => (
+                <button
+                  key={term}
+                  onClick={() => setQuery(term)}
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-greyish-blue/20"
+                >
+                  <FaRegClock className="w-3.5 h-3.5 text-greyish-blue shrink-0" />
+                  <span className="text-white text-sm truncate">{term}</span>
+                </button>
+              ))}
+            </>
+          ) : (
+            <>
+              {loading && results.length === 0 && (
+                <p className="px-4 py-3 text-greyish-blue text-sm">Searching…</p>
+              )}
+              {!loading && results.length === 0 && (
+                <p className="px-4 py-3 text-greyish-blue text-sm">No results found.</p>
+              )}
+              {results.map((r) => {
+                const title = r.title || r.name || "";
+                const date = r.release_date || r.first_air_date || "";
+                const year = date ? new Date(date).getFullYear().toString() : "";
+                const poster = r.poster_path
+                  ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
+                  : "";
+                return (
+                  <button
+                    key={`${r.media_type}-${r.id}`}
+                    onClick={() => goTo(r)}
+                    className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-greyish-blue/20"
+                  >
+                    {poster ? (
+                      <img
+                        src={poster}
+                        alt={title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-10 h-14 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-10 h-14 rounded bg-dark-blue shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-white text-sm truncate">{title}</p>
+                      <p className="text-greyish-blue text-xs">
+                        {year && `${year} • `}
+                        {r.media_type === "tv" ? "TV Series" : "Movie"}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </>
           )}
-          {!loading && results.length === 0 && (
-            <p className="px-4 py-3 text-greyish-blue text-sm">No results found.</p>
-          )}
-          {results.map((r) => {
-            const title = r.title || r.name || "";
-            const date = r.release_date || r.first_air_date || "";
-            const year = date ? new Date(date).getFullYear().toString() : "";
-            const poster = r.poster_path
-              ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
-              : "";
-            return (
-              <button
-                key={`${r.media_type}-${r.id}`}
-                onClick={() => goTo(r)}
-                className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-greyish-blue/20"
-              >
-                {poster ? (
-                  <img
-                    src={poster}
-                    alt={title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-10 h-14 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-10 h-14 rounded bg-dark-blue shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <p className="text-white text-sm truncate">{title}</p>
-                  <p className="text-greyish-blue text-xs">
-                    {year && `${year} • `}
-                    {r.media_type === "tv" ? "TV Series" : "Movie"}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
         </div>
       )}
     </div>

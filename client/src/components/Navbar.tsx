@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { removeUser } from "../store/userSlice";
 import { clearRecentlyViewed } from "../utils/recentlyViewed";
+import axios from "axios";
 import api from "../api/axios";
 
 export default function Navbar() {
@@ -34,10 +35,10 @@ export default function Navbar() {
       dispatch(removeUser());
       clearRecentlyViewed();
       navigate("/login");
-    } catch (error : any) {
+    } catch (error) {
       console.error(
         "Error logging out:",
-        error.response ? error.response.data : error.message
+        axios.isAxiosError(error) ? error.response?.data ?? error.message : error
       );
     }
   };
