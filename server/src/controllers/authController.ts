@@ -10,10 +10,8 @@ export const authProviders = (_req: Request, res: Response) => {
     res.status(200).json({ google: config.google.enabled });
 };
 
-export const signup = async (req: Request, res: Response) => {
+export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log("Signup route called");
-
         let user = await User.findOne({ email: req.body.email });
 
         if (user) {
@@ -21,7 +19,6 @@ export const signup = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        console.log("Password hashed successfully");
 
         const newUser = new User({
             fullName: req.body.fullName,
@@ -30,10 +27,18 @@ export const signup = async (req: Request, res: Response) => {
         });
 
         const savedUser = await newUser.save();
-        console.log("User saved successfully");
 
-        const {password , ...userWithoutPassword} = savedUser.toObject();
-        return res.status(201).send({ message: "User registered successfully", user: userWithoutPassword });
+        // Log the new user straight in so they land on the app already
+        // authenticated — no second trip through /login. This sets the session
+        // cookie on this very response.
+        req.logIn(savedUser, (err) => {
+            if (err) {
+                console.error("Error logging in new user:", err);
+                return next(err);
+            }
+            const {password , ...userWithoutPassword} = savedUser.toObject();
+            return res.status(201).send({ message: "User registered successfully", user: userWithoutPassword });
+        });
 
     } catch (err) {
         console.error("Error during signup:", err);

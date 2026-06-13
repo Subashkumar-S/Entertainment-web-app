@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
+import { useDispatch } from "react-redux";
 import api from "../../api/axios";
 import logo from "/logo.svg";
+import { setUser } from "../../store/userSlice";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 export default function SignupPage() {
@@ -13,6 +15,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [submit, setSubmit] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +45,12 @@ export default function SignupPage() {
       );
 
       if (response.status === 201) {
-        navigate("/login");
+        // The server logs the new user in on signup (session cookie set), so
+        // hydrate auth state and go straight to the app — no re-login needed.
+        const { fullName, email, favorites, watchlist, watchedMovies, ratings } =
+          response.data.user;
+        dispatch(setUser({ fullName, email, favorites, watchlist, watchedMovies, ratings }));
+        navigate("/");
       }
     } catch (err: unknown) {
       if (!axios.isAxiosError(err) || !err.response || !err.response.data) {
