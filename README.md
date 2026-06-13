@@ -49,17 +49,21 @@ session-based auth flow.
 - **Where to watch** — streaming/rent/buy provider logos that deep-link to
   JustWatch for the title.
 - **Personal library** — bookmark, watchlist, watched, and 1–5★ ratings, wired to
-  the backend and rehydrated on refresh; the Bookmarks page has Bookmarks /
-  Watchlist tabs with empty states.
+  the backend and rehydrated on refresh.
+- **Watch reminders** — schedule any watchlist title for a date/time and get an
+  **email reminder** when it's due. The watchlist has its own page (Upcoming /
+  Planned / Watched) with inline reminder editing. Reminders are queued as
+  Redis-backed delayed jobs (BullMQ) and emailed by a separate `reminder-worker`
+  service via Resend.
 - **Recommended for you** — a blended popular feed that is personalized from your
   most recent bookmark, so the row is never empty.
 - **Live search** — debounced multi-search dropdown with poster results, plus
   per-user **recent searches** stored in Redis (shown on focus, clearable).
 - **Recently viewed** — a device-local history row on Home.
 - **Activity insights** — a personal analytics dashboard (account menu → "Your
-  insights"): titles viewed, searches, bookmarks, top genres, and a 14-day
-  activity chart, all computed from your own interaction events via MongoDB
-  aggregation.
+  insights"): titles viewed, searches, bookmarks, top genres, a 14-day activity
+  chart, and watchlist stats (planned / watched / upcoming reminders), computed
+  from your own data via MongoDB aggregation.
 - **Auth** — sign up / log in with a session cookie; protected routes; session
   rehydration via `/api/auth/me`; plus optional **"Continue with Google"** OAuth.
 
@@ -72,6 +76,9 @@ axios · Tailwind CSS · react-icons.
 express-session · connect-redis / ioredis · pino. TMDB is proxied server-side
 with a Redis cache-aside layer and normalized into flat, client-ready shapes.
 
+**Worker** — a standalone `reminder-worker` (BullMQ on Redis · Mongoose · Resend)
+that delivers scheduled watch-reminder emails out of band from the API.
+
 **Tooling** — Vitest (unit tests) · ESLint · Docker Compose (MongoDB + Redis).
 
 ## Architecture
@@ -80,9 +87,12 @@ with a Redis cache-aside layer and normalized into flat, client-ready shapes.
 Browser (React SPA)
       │  /api/*  (session cookie)
       ▼
-Express API  ──► MongoDB (users, library, activity events)
+Express API  ──► MongoDB (users, watchlist, activity events)
       │
-      ├──► Redis  (sessions + TMDB cache-aside + recent searches)
+      ├──► Redis  (sessions + TMDB cache-aside + recent searches + BullMQ queue)
+      │            │  delayed "reminders" jobs
+      │            ▼
+      │      reminder-worker  ──► Resend (email)  +  MongoDB (mark sent)
       │
       └──► TMDB API  (proxied; keys never reach the client)
 ```
@@ -94,6 +104,10 @@ Express API  ──► MongoDB (users, library, activity events)
   shape and cache entries stay small.
 - Sessions are stored in Redis; auth state is rehydrated on load via
   `/api/auth/me`.
+- **Watch reminders** are scheduled as **BullMQ delayed jobs** in Redis when a
+  user picks a time; the separate **reminder-worker** consumes the queue at the
+  due moment and sends the email via Resend (re-checks state, marks sent
+  idempotently, retries on failure).
 
 ## Repository layout
 
@@ -102,17 +116,21 @@ Express API  ──► MongoDB (users, library, activity events)
 ├── client/                 # React + Vite SPA
 │   └── src/
 │       ├── components/      # Card, TrailerModal, LibraryActions, GoogleSignInButton, …
-│       ├── pages/           # Home, Movies, TV_Series, Bookmark, TitleDetails, Profile, …
-│       ├── store/           # Redux Toolkit (user/library slice)
+│       ├── pages/           # Home, Movies, TV_Series, Bookmark, Watchlist, TitleDetails, Profile, …
+│       ├── store/           # Redux Toolkit (user + watchlist slices)
 │       └── utils/           # feed, recentlyViewed, track (+ unit tests)
 ├── server/                 # Express + TypeScript API
 │   └── src/
-│       ├── controllers/     # auth, favorites, library, tmdb, events, insights, search
+│       ├── controllers/     # auth, favorites, library, watchlist, tmdb, events, insights, search
 │       ├── services/        # tmdbService (append_to_response, discover, …)
-│       ├── models/          # user, event (Mongoose schemas)
-│       ├── utils/           # cache, normalizeTitle, insights, recentSearches (+ tests)
+│       ├── models/          # user, event, watchlistItem (Mongoose schemas)
+│       ├── queue/           # reminderQueue (BullMQ producer)
+│       ├── scripts/         # migrateWatchlist (one-off backfill)
+│       ├── utils/           # cache, normalizeTitle, insights, watchlist, recentSearches (+ tests)
 │       └── routes/          # /api/{auth,favorites,library,search,events,insights,tmdb}
-├── deploy/                 # docker-compose for the full local stack
+├── worker/                 # reminder-worker: BullMQ consumer → Resend email
+│   └── src/                # config, logger, email, models, index (Worker)
+├── deploy/                 # docker-compose for the full local stack (+ worker)
 ├── .github/workflows/      # CI (lint · test · build)
 └── .env.example           # single source of truth for all env vars
 ```
@@ -147,6 +165,8 @@ cp .env.example .env
 | `GOOGLE_CLIENT_ID` | no | — | Enables "Continue with Google" when set with the secret. |
 | `GOOGLE_CLIENT_SECRET` | no | — | Google OAuth client secret. |
 | `GOOGLE_CALLBACK_URL` | no | `http://localhost:5000/api/auth/google/callback` | Must match an Authorized redirect URI in the Google console. |
+| `RESEND_API_KEY` | no | — | Enables reminder emails (worker). Without it the worker runs but can't send. |
+| `EMAIL_FROM` | no | `Cineplan <onboarding@resend.dev>` | Sender for reminder emails; use a verified domain in prod. |
 
 > The `.env` file is gitignored — **never commit real secrets**. Only
 > `.env.example` placeholders are tracked.
@@ -170,6 +190,9 @@ cd server && npm install && npm run dev      # http://localhost:5000
 
 # 3. client  (new terminal, from repo root)
 cd client && npm install && npm run dev       # http://localhost:5173
+
+# 4. reminder-worker  (new terminal) — only needed for email reminders
+cd worker && npm install && npm run dev
 ```
 
 ### Run the full stack in Docker
@@ -220,7 +243,7 @@ All routes are under `/api` and rate-limited.
 |---|---|
 | `/api/auth` | `signup`, `login`, `logout`, `me` (session rehydration), `config` (enabled providers), and Google OAuth (`google` + `google/callback`) when configured. |
 | `/api/favorites` | Add / remove bookmarks. |
-| `/api/library` | Watchlist, watched toggle, ratings. |
+| `/api/library` | Watchlist CRUD (`GET/POST/PATCH/DELETE /watchlist`, with optional reminders that enqueue BullMQ jobs), watched toggle, ratings. |
 | `/api/search` | Per-user recent searches in Redis (`recent`: get / record / clear). |
 | `/api/events` | Ingest a view / search / bookmark interaction event (fire-and-forget). |
 | `/api/insights` | Per-user analytics (summary, top genres, 14-day activity, recent titles) + `trending` computed from real events across users, with a TMDB fallback. |
