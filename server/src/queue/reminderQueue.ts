@@ -26,7 +26,8 @@ export interface ReminderJobData {
 }
 
 // Deterministic per-item id so re-scheduling replaces rather than duplicates.
-const jobIdFor = (itemId: string) => `reminder:${itemId}`;
+// NB: BullMQ forbids ":" in custom job ids (it's their key separator) — use "-".
+const jobIdFor = (itemId: string) => `reminder-${itemId}`;
 
 // Remove any pending job for an item (on cancel / delete / mark-watched, and
 // before a reschedule — BullMQ ignores add() for an existing jobId, so the old
