@@ -12,11 +12,15 @@ import { getMovie, getTv } from "../services/tmdbService";
 
 type Resolved = { mediaType: "movie" | "tv"; title: string; posterPath?: string };
 
+// Store posterPath as a full image URL, matching what the client sends via the
+// new API (so the worker email and watchlist UI can use it directly).
+const posterUrl = (path?: string) => (path ? `https://image.tmdb.org/t/p/w500${path}` : undefined);
+
 const resolveTitle = async (id: string): Promise<Resolved | null> => {
   try {
     const m = await getMovie(id);
     if (m?.id) {
-      return { mediaType: "movie", title: m.title || m.original_title || `Movie ${id}`, posterPath: m.poster_path || undefined };
+      return { mediaType: "movie", title: m.title || m.original_title || `Movie ${id}`, posterPath: posterUrl(m.poster_path) };
     }
   } catch {
     /* not a movie — try tv */
@@ -24,7 +28,7 @@ const resolveTitle = async (id: string): Promise<Resolved | null> => {
   try {
     const t = await getTv(id);
     if (t?.id) {
-      return { mediaType: "tv", title: t.name || t.original_name || `Show ${id}`, posterPath: t.poster_path || undefined };
+      return { mediaType: "tv", title: t.name || t.original_name || `Show ${id}`, posterPath: posterUrl(t.poster_path) };
     }
   } catch {
     /* unresolved */

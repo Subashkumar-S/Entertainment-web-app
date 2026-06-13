@@ -1,6 +1,6 @@
 import { useState } from "react";
 import logo  from "/logo.svg";
-import { FaHome, FaBookmark } from "react-icons/fa";
+import { FaHome, FaBookmark, FaRegClock } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RiTvFill } from "react-icons/ri";
 import { MdLocalMovies } from "react-icons/md";
@@ -88,6 +88,20 @@ export default function Navbar() {
               }
             >
               <RiTvFill className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/watchlist"
+              aria-label="Watchlist"
+              aria-current={location.pathname === "/watchlist" ? "page" : undefined}
+              className={
+                location.pathname === "/watchlist"
+                  ? "text-white opacity-100"
+                  : "text-white opacity-50 hover:opacity-100"
+              }
+            >
+              <FaRegClock className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
           </li>
           <li>

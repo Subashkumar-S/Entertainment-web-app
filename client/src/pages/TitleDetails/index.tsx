@@ -189,7 +189,12 @@ function Details({
             )}
 
             <div className="mt-4">
-              <LibraryActions id={data.id} mediaType={data.mediaType} />
+              <LibraryActions
+                id={data.id}
+                mediaType={data.mediaType}
+                title={data.title}
+                posterPath={data.posterPath ?? undefined}
+              />
             </div>
 
             {data.overview && (

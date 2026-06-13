@@ -17,6 +17,19 @@ export interface RegularDataItem {
 
 export type MediaType = 'movie' | 'tv';
 
+export interface WatchlistItem {
+  _id: string;
+  mediaType: MediaType;
+  titleId: string;
+  title: string;
+  posterPath?: string;
+  status: "planned" | "watched";
+  remindAt?: string | null;
+  remindTz?: string;
+  reminderSent: boolean;
+  createdAt: string;
+}
+
 export interface CastMember {
   id: string;
   name: string;

@@ -22,7 +22,8 @@ const formatWhen = (iso: string, tz?: string): string => {
 export const sendReminderEmail = async (data: ReminderJobData): Promise<void> => {
   const when = formatWhen(data.remindAtISO, data.remindTz);
   const link = `${config.clientOrigin}/title/${data.mediaType}/${data.titleId}`;
-  const poster = data.posterPath ? `https://image.tmdb.org/t/p/w300${data.posterPath}` : "";
+  // posterPath is stored as a full image URL by the API/migration.
+  const poster = data.posterPath || "";
 
   const html = `
   <div style="font-family:'Outfit',Arial,sans-serif;background:#10141e;color:#fff;padding:32px;border-radius:12px;max-width:480px;margin:auto;">

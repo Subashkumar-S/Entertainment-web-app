@@ -62,10 +62,8 @@ export const CardWrapper: React.FC = () => {
   const browseMediaType: MediaType | null = isMoviesPage ? "movie" : isTvSeriesPage ? "tv" : null;
 
   const favorites = useSelector((state: RootState) => state.user.favorites);
-  const watchlist = useSelector((state: RootState) => state.user.watchlist);
 
   const [items, setItems] = useState<RegularDataItem[]>([]);
-  const [bookmarkTab, setBookmarkTab] = useState<"bookmarks" | "watchlist">("bookmarks");
 
   // Browse (movies/tv) genre filter + pagination.
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -129,14 +127,13 @@ export const CardWrapper: React.FC = () => {
     if (!isBookmarkPage) return;
     let active = true;
     (async () => {
-      const sourceIds = bookmarkTab === "watchlist" ? watchlist : favorites;
-      const resolved = await fetchBookmarkedItems(sourceIds);
+      const resolved = await fetchBookmarkedItems(favorites);
       if (active) setItems(resolved);
     })().catch((e) => console.error("Error resolving bookmarks:", e));
     return () => {
       active = false;
     };
-  }, [isBookmarkPage, bookmarkTab, favorites, watchlist]);
+  }, [isBookmarkPage, favorites]);
 
   const loadMore = async () => {
     if (!browseMediaType || loadingMore || !hasMore) return;
@@ -156,27 +153,12 @@ export const CardWrapper: React.FC = () => {
 
   return (
     <div className="w-full py-2">
-      {isBookmarkPage ? (
-        <div className="flex items-center gap-6 py-8 font-outfit">
-          {(["bookmarks", "watchlist"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setBookmarkTab(tab)}
-              className={`text-2xl md:text-3xl capitalize ${
-                bookmarkTab === tab ? "text-white" : "text-greyish-blue hover:text-white"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <h2 className="text-2xl md:text-3xl text-white font-outfit py-8">
-          {isHomePage && "Recommended for you"}
-          {isMoviesPage && "Movies"}
-          {isTvSeriesPage && "TV Series"}
-        </h2>
-      )}
+      <h2 className="text-2xl md:text-3xl text-white font-outfit py-8">
+        {isHomePage && "Recommended for you"}
+        {isMoviesPage && "Movies"}
+        {isTvSeriesPage && "TV Series"}
+        {isBookmarkPage && "Bookmarks"}
+      </h2>
 
       {browseMediaType && genres.length > 0 && (
         <div className="flex flex-wrap gap-2 pb-8 font-outfit">
@@ -225,11 +207,7 @@ export const CardWrapper: React.FC = () => {
       </div>
 
       {isBookmarkPage && items.length === 0 && (
-        <p className="text-greyish-blue font-outfit">
-          {bookmarkTab === "watchlist"
-            ? "Your watchlist is empty."
-            : "You haven't bookmarked anything yet."}
-        </p>
+        <p className="text-greyish-blue font-outfit">You haven't bookmarked anything yet.</p>
       )}
 
       {browseMediaType && hasMore && (
