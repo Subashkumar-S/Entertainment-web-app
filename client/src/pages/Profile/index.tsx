@@ -67,6 +67,23 @@ function Dashboard({ data }: { data: InsightsData }) {
         <StatCard label="Bookmarks" value={data.summary.bookmark} accent="text-white" />
       </div>
 
+      {/* Watchlist */}
+      {data.watchlist && data.watchlist.planned + data.watchlist.watched > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white text-lg">Watchlist</h3>
+            <Link to="/watchlist" className="text-red text-sm hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <StatCard label="Planned" value={data.watchlist.planned} accent="text-white" />
+            <StatCard label="Watched" value={data.watchlist.watched} accent="text-red" />
+            <StatCard label="Upcoming reminders" value={data.watchlist.upcoming} accent="text-greyish-blue" />
+          </div>
+        </section>
+      )}
+
       {/* Activity over time */}
       <section>
         <div className="flex items-center justify-between mb-4">

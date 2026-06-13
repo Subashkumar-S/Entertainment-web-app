@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Event from "../models/eventModel";
+import WatchlistItem from "../models/watchlistItemModel";
 import logger from "../config/logger";
 import { cached } from "../utils/cache";
 import * as tmdb from "../services/tmdbService";
@@ -33,7 +34,8 @@ export const getInsights = async (req: Request, res: Response) => {
     const since = new Date(Date.now() - ACTIVITY_DAYS * 24 * 60 * 60 * 1000);
 
     try {
-        const [summaryAgg, topGenresAgg, activityAgg, recentAgg] = await Promise.all([
+        const now = new Date();
+        const [summaryAgg, topGenresAgg, activityAgg, recentAgg, watchlistAgg] = await Promise.all([
             Event.aggregate([
                 { $match: { userId } },
                 { $group: { _id: "$type", count: { $sum: 1 } } },
@@ -71,6 +73,25 @@ export const getInsights = async (req: Request, res: Response) => {
                 { $sort: { lastViewed: -1 } },
                 { $limit: 6 },
             ]),
+            WatchlistItem.aggregate([
+                { $match: { userId } },
+                {
+                    $group: {
+                        _id: null,
+                        planned: { $sum: { $cond: [{ $eq: ["$status", "planned"] }, 1, 0] } },
+                        watched: { $sum: { $cond: [{ $eq: ["$status", "watched"] }, 1, 0] } },
+                        upcoming: {
+                            $sum: {
+                                $cond: [
+                                    { $and: [{ $eq: ["$status", "planned"] }, { $gte: ["$remindAt", now] }] },
+                                    1,
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                },
+            ]),
         ]);
 
         const activityRows: DailyActivityRow[] = activityAgg.map((r) => ({
@@ -88,6 +109,11 @@ export const getInsights = async (req: Request, res: Response) => {
                 title: t.title ?? "",
                 mediaType: t.mediaType ?? "movie",
             })),
+            watchlist: {
+                planned: watchlistAgg[0]?.planned ?? 0,
+                watched: watchlistAgg[0]?.watched ?? 0,
+                upcoming: watchlistAgg[0]?.upcoming ?? 0,
+            },
         });
     } catch (err) {
         logger.error({ err }, "getInsights failed");

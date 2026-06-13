@@ -108,4 +108,5 @@ export interface InsightsData {
   topGenres: { genre: string; count: number }[];
   activity: ActivityPoint[];
   recentTitles: { titleId: string; title: string; mediaType: MediaType }[];
+  watchlist: { planned: number; watched: number; upcoming: number };
 }
