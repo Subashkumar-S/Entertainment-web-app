@@ -159,7 +159,7 @@ cp .env.example .env
 | `PORT` | no | `5000` | API port. |
 | `CLIENT_ORIGIN` | no | `http://localhost:5173,http://localhost:3000` | CORS allowlist (comma-separated). |
 | `VITE_API_BASE_URL` | no | `http://localhost:5000/api` | Where the client sends API calls. |
-| `MONGODB_URI` | no | `mongodb://localhost:27017/entertainment` | Set to Atlas in prod. |
+| `MONGODB_URI` | no | `mongodb://localhost:27017/cineplan` | Set to Atlas in prod. |
 | `REDIS_URL` | no | `redis://localhost:6379` | Set to managed Redis in prod. |
 | `NODE_ENV` | no | — | Set `production` to enable Secure/SameSite=None cookies and make secrets mandatory. |
 | `GOOGLE_CLIENT_ID` | no | — | Enables "Continue with Google" when set with the secret. |

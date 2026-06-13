@@ -17,13 +17,13 @@
 # (Redis) automatically — no data-store URLs needed in .env for local dev.
 #
 # Data persists to the same ./volumes/ bind mounts and uses the same container
-# names (ewa-mongo / ewa-redis) as the full `docker-compose.yml` stack. Run only
+# names (cineplan-mongo / cineplan-redis) as the full `docker-compose.yml` stack. Run only
 # ONE of the two stacks at a time — Docker will refuse a duplicate container name.
 
 services:
   mongo:
     image: mongo:7
-    container_name: ewa-mongo
+    container_name: cineplan-mongo
     restart: unless-stopped
     ports:
       - "127.0.0.1:27017:27017"
@@ -37,7 +37,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ewa-redis
+    container_name: cineplan-redis
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"

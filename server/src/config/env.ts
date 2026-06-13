@@ -50,7 +50,7 @@ const config = {
     port,
     secret: process.env.SECRET ?? "dev-insecure-secret",
     clientOrigins,
-    mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/entertainment",
+    mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/cineplan",
     redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
     tmdb: {
         apiKey: tmdbApiKey,

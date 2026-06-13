@@ -18,7 +18,7 @@
 services:
   server:
     build: ../server
-    container_name: ewa-server
+    container_name: cineplan-server
     restart: always
     ports:
       - "127.0.0.1:5000:5000"
@@ -26,7 +26,7 @@ services:
       PORT: "${PORT:-5000}"
       # Local defaults point at the mongo/redis containers below.
       # Override in production to use cloud MongoDB Atlas + managed Redis.
-      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/entertainment}"
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/cineplan}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
       # No default — Compose refuses to start if these are unset.
       SECRET: "${SECRET:?SECRET is required - set it in ./.env}"
@@ -47,14 +47,14 @@ services:
           target: /app
           action: sync
     networks:
-      - ewa-network
+      - cineplan-network
 
   worker:
     build: ../worker
-    container_name: ewa-worker
+    container_name: cineplan-worker
     restart: always
     environment:
-      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/entertainment}"
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/cineplan}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
       # Reminder email delivery (Resend). Optional: the worker runs and logs a
       # warning until RESEND_API_KEY is set, so the stack still comes up locally.
@@ -77,11 +77,11 @@ services:
           target: /app
           action: sync
     networks:
-      - ewa-network
+      - cineplan-network
 
   client:
     build: ../client
-    container_name: ewa-client
+    container_name: cineplan-client
     restart: always
     ports:
       - "127.0.0.1:3000:3000"
@@ -103,11 +103,11 @@ services:
           target: /app
           action: sync
     networks:
-      - ewa-network
+      - cineplan-network
 
   mongo:
     image: mongo:7
-    container_name: ewa-mongo
+    container_name: cineplan-mongo
     restart: always
     ports:
       - "127.0.0.1:27017:27017"
@@ -119,11 +119,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - ewa-network
+      - cineplan-network
 
   redis:
     image: redis:7-alpine
-    container_name: ewa-redis
+    container_name: cineplan-redis
     restart: always
     ports:
       - "127.0.0.1:6379:6379"
@@ -135,8 +135,8 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - ewa-network
+      - cineplan-network
 
 networks:
-  ewa-network:
+  cineplan-network:
     driver: bridge

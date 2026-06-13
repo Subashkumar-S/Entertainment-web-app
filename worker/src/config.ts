@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const config = {
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
-  mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/entertainment",
+  mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/cineplan",
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   // Dev default is Resend's onboarding sender; set EMAIL_FROM to a verified
   // domain address for production.
