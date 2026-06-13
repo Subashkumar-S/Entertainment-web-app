@@ -1,0 +1,27 @@
+{
+  "name": "cineplan-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reminder-worker: consumes the BullMQ 'reminders' queue and emails watch reminders via Resend.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon --watch src --ext ts,json --exec \"ts-node src/index.ts\""
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bullmq": "^5.78.0",
+    "dotenv": "^17.4.2",
+    "ioredis": "^5.10.1",
+    "mongoose": "^9.7.0",
+    "pino": "^10.3.1",
+    "resend": "^6.12.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

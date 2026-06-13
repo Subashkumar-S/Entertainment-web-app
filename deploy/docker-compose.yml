@@ -49,6 +49,36 @@ services:
     networks:
       - ewa-network
 
+  worker:
+    build: ../worker
+    container_name: ewa-worker
+    restart: always
+    environment:
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/entertainment}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      # Reminder email delivery (Resend). Optional: the worker runs and logs a
+      # warning until RESEND_API_KEY is set, so the stack still comes up locally.
+      RESEND_API_KEY: "${RESEND_API_KEY:-}"
+      EMAIL_FROM: "${EMAIL_FROM:-Cineplan <onboarding@resend.dev>}"
+      # Used to build the "Open in Cineplan" deep link in the email.
+      CLIENT_ORIGIN: "${CLIENT_ORIGIN:-http://localhost:5173}"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    develop:
+      watch:
+        - path: ../worker/package.json
+          action: rebuild
+        - path: ../worker/package-lock.json
+          action: rebuild
+        - path: ../worker
+          target: /app
+          action: sync
+    networks:
+      - ewa-network
+
   client:
     build: ../client
     container_name: ewa-client
