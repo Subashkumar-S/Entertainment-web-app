@@ -32,6 +32,11 @@ services:
       SECRET: "${SECRET:?SECRET is required - set it in ./.env}"
       TMDB_API_KEY: "${TMDB_API_KEY:?TMDB_API_KEY is required - set it in ./.env}"
       CLIENT_ORIGIN: "${CLIENT_ORIGIN:-http://localhost:3000}"
+      # Optional Google OAuth: the "Continue with Google" button only appears
+      # when both id and secret are set. Callback must match the Google console.
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+      GOOGLE_CALLBACK_URL: "${GOOGLE_CALLBACK_URL:-http://localhost:5000/api/auth/google/callback}"
     depends_on:
       mongo:
         condition: service_healthy
