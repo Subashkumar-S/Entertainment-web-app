@@ -44,7 +44,7 @@ export default function Navbar() {
   };
 
   return (
-    <div className="relative w-full h-14 sm:h-[120px] sm:p-6 lg:w-fit lg:h-screen">
+    <div className="relative z-40 w-full h-14 sm:h-[120px] sm:p-6 lg:w-fit lg:h-screen">
       <div className="w-full lg:w-24 h-full bg-semi-dark-blue flex lg:flex-col items-center justify-between px-4 lg:pt-7 lg:pb-8 sm:rounded-[10px] lg:rounded-[20px]">
         <img src={logo} alt="logo" className="h-6 w-6 sm:h-8 sm:w-8" />
         <ul className="flex lg:flex-col items-center gap-6 lg:pt-16 lg:flex-1 list-none">
@@ -139,7 +139,7 @@ export default function Navbar() {
             <FaCircleUser className="h-6 w-6 sm:h-8 sm:w-8 lg:w-10 lg:h-10 text-white opacity-50 hover:opacity-100 hover:cursor-pointer" />
           </button>
           {showContextMenu && (
-            <div className="absolute left-10 top-full -mt-32 w-48 bg-semi-dark-blue text-white p-4 rounded shadow-lg z-10">
+            <div className="absolute left-10 top-full -mt-32 w-48 bg-semi-dark-blue text-white p-4 rounded shadow-lg z-50">
               <p className="font-semibold">{user.fullName}</p>
               <p className="text-sm">{user.email}</p>
               <Link
