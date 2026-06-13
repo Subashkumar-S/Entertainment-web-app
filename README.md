@@ -1,8 +1,9 @@
-# Entertainment Web App
+# Cineplan
 
-[![CI](https://github.com/Subashkumar-S/Entertainment-web-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Subashkumar-S/Entertainment-web-app/actions/workflows/ci.yml)
+[![CI](https://github.com/Subashkumar-S/cineplan/actions/workflows/ci.yml/badge.svg)](https://github.com/Subashkumar-S/cineplan/actions/workflows/ci.yml)
 
-A full-stack, TMDB-powered streaming-style web app. It started as the
+**Cineplan** is a full-stack, TMDB-powered discovery-and-planning app for movies
+and TV. It started as the
 [Frontend Mentor "Entertainment web app" challenge](https://www.frontendmentor.io/challenges/entertainment-web-app-J-UhgAW1X)
 and grew into a complete application: browse trending titles, open rich
 movie/series detail pages, watch trailers in-app, see where to stream/rent/buy,
