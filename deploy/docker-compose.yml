@@ -94,8 +94,9 @@ services:
     environment:
       # Used by the client once TMDB/API calls are routed through the backend.
       VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
-    volumes:
-      - ../client:/app
+    # No source bind-mount: this stack serves the built `dist` baked into the
+    # image (`serve -s dist`). Mounting ../client over /app would shadow that
+    # dist with a stale host build. Use docker-compose.dev.yml for live reload.
     depends_on:
       - server
     develop:
@@ -104,9 +105,11 @@ services:
           action: rebuild
         - path: ../client/package-lock.json
           action: rebuild
-        - path: ../client
-          target: /app
-          action: sync
+        # Static build — any source change needs a rebuild (no HMR here).
+        - path: ../client/src
+          action: rebuild
+        - path: ../client/index.html
+          action: rebuild
     networks:
       - cineplan-network
 
