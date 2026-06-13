@@ -13,6 +13,7 @@ import authRoutes from "./routes/authRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import tmdbRoutes from "./routes/tmdbRoutes";
 import libraryRoutes from "./routes/libraryRoutes";
+import { closeReminderQueue } from "./queue/reminderQueue";
 import searchHistoryRoutes from "./routes/searchHistoryRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import insightsRoutes from "./routes/insightsRoutes";
@@ -87,6 +88,7 @@ const start = async () => {
         server.close();
         await disconnectDB();
         await redisClient.quit();
+        await closeReminderQueue();
         process.exit(0);
     };
 

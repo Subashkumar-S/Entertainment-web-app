@@ -1,12 +1,38 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import WatchlistItem from "../models/watchlistItemModel";
+import WatchlistItem, { IWatchlistItem } from "../models/watchlistItemModel";
 import logger from "../config/logger";
 import { normalizeAdd, parseRemindAt } from "../utils/watchlist";
+import { scheduleReminder, cancelReminder, ReminderJobData } from "../queue/reminderQueue";
 
 const userIdOf = (req: Request): string | null => {
   const user = req.user as { _id?: unknown } | undefined;
   return user?._id ? String(user._id) : null;
+};
+
+const userEmailOf = (req: Request): string =>
+  String((req.user as { email?: string } | undefined)?.email ?? "");
+
+// Keep the queued reminder in sync with the item's state: schedule a job for a
+// planned item that has an unsent reminder time, otherwise ensure none lingers.
+const syncReminder = async (item: IWatchlistItem, email: string): Promise<void> => {
+  const itemId = String(item._id);
+  if (item.status === "planned" && item.remindAt && !item.reminderSent && email) {
+    const data: ReminderJobData = {
+      itemId,
+      userId: String(item.userId),
+      email,
+      title: item.title,
+      mediaType: item.mediaType,
+      titleId: item.titleId,
+      posterPath: item.posterPath,
+      remindAtISO: new Date(item.remindAt).toISOString(),
+      remindTz: item.remindTz,
+    };
+    await scheduleReminder(data, new Date(item.remindAt));
+  } else {
+    await cancelReminder(itemId);
+  }
 };
 
 // GET /api/library/watchlist — the signed-in user's items, soonest reminder first.
@@ -50,8 +76,8 @@ export const addWatchlistItem = async (req: Request, res: Response) => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    // Phase 2 hooks the BullMQ producer here: schedule a job when item.remindAt
-    // is set, otherwise cancel any existing one.
+    if (!item) return res.status(500).json({ message: "Server error" });
+    await syncReminder(item, userEmailOf(req));
     res.status(200).json({ item });
   } catch (err) {
     logger.error({ err }, "addWatchlistItem failed");
@@ -92,7 +118,7 @@ export const updateWatchlistItem = async (req: Request, res: Response) => {
     const item = await WatchlistItem.findOneAndUpdate({ _id: id, userId }, { $set: set }, { new: true });
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    // Phase 2: reschedule (remindAt changed) or cancel (cleared / marked watched).
+    await syncReminder(item, userEmailOf(req));
     res.status(200).json({ item });
   } catch (err) {
     logger.error({ err }, "updateWatchlistItem failed");
@@ -114,7 +140,7 @@ export const deleteWatchlistItem = async (req: Request, res: Response) => {
     const item = await WatchlistItem.findOneAndDelete({ _id: id, userId });
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    // Phase 2: cancel the scheduled job for this item.
+    await cancelReminder(id);
     res.status(200).json({ message: "Removed" });
   } catch (err) {
     logger.error({ err }, "deleteWatchlistItem failed");
