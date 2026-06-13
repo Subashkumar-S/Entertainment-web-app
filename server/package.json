@@ -8,6 +8,7 @@
     "serve": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "migrate:watchlist": "ts-node src/scripts/migrateWatchlist.ts",
     "dev": "nodemon --watch src --ext ts,json --exec \"ts-node src/index.ts\""
   },
   "keywords": [],
