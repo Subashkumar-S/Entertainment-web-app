@@ -67,7 +67,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className="w-[164px] h-[110px] md:w-[220px] md:h-[140px] lg:w-[280px] lg:h-[174px] font-outfit relative group cursor-pointer"
+      className="w-full font-outfit relative group cursor-pointer"
       onClick={openDetails}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -79,7 +79,7 @@ export const Card: React.FC<CardProps> = ({
       tabIndex={0}
       aria-label={`${title} details`}
     >
-      <div className="w-full h-full flex items-start relative">
+      <div className="w-full aspect-[16/10] flex items-start relative">
         <img
           src={thumbnail}
           alt={title}

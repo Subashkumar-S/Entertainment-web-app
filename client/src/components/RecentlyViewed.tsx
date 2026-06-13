@@ -14,9 +14,9 @@ export default function RecentlyViewed() {
   return (
     <div className="font-outfit pb-2">
       <h4 className="text-2xl md:text-3xl text-white pb-6">Recently viewed</h4>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
         {items.map((item) => (
-          <div key={`${item.mediaType}-${item.id}`} className="shrink-0">
+          <div key={`${item.mediaType}-${item.id}`} className="shrink-0 w-[164px] md:w-[220px] lg:w-[280px]">
             <Card
               id={item.id}
               mediaType={item.mediaType}

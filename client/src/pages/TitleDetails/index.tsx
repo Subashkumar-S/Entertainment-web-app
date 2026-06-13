@@ -238,7 +238,7 @@ function Details({
         {data.recommendations.length > 0 && (
           <section className="mt-10">
             <h2 className="text-white text-xl md:text-2xl mb-4">More like this</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-20">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8">
               {data.recommendations.map((r) => (
                 <Card
                   key={`${r.mediaType}-${r.id}`}
