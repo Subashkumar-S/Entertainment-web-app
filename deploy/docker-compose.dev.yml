@@ -4,12 +4,12 @@
 # (`npm run dev`) natively on your host for fast reloads, while still
 # getting real Mongo/Redis from containers.
 #
-#   cd deploy && docker compose -f docker-compose.dev.yml up -d
+#   cd deploy && docker compose --env-file ../.env -f docker-compose.dev.yml up -d
 #
-# First (once): copy the repo-root env template and add your secrets:
-#   cp .env.example .env   # at the repo root — fill in SECRET + TMDB_API_KEY
+# First (once): copy the single repo-root env template and add your secrets:
+#   cp ../.env.example ../.env   # fill in CINEPLAN_SECRET + CINEPLAN_TMDB_API_KEY
 #
-# Then in two terminals:
+# Then in two terminals (both read the same repo-root .env):
 #   cd server && npm run dev
 #   cd client && npm run dev
 #

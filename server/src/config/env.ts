@@ -6,6 +6,16 @@ import path from "path";
 // and Compose injects the vars directly, so dotenv just no-ops on the miss.
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
+// That root .env is CINEPLAN_-prefixed so it never clashes with the sibling
+// projects on a shared host. Alias each CINEPLAN_FOO to the plain FOO the app
+// reads. Blanks are skipped so the code defaults below still apply, and an
+// existing FOO (e.g. injected by Compose in Docker) is never overwritten.
+for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("CINEPLAN_") && value && !process.env[key.slice(9)]) {
+        process.env[key.slice(9)] = value;
+    }
+}
+
 const isProd = process.env.NODE_ENV === "production";
 
 // The .env.example ships placeholders; treat them as "not set" so a copied-

@@ -1,18 +1,16 @@
 # Local development stack: client + server + MongoDB + Redis, all in Docker.
 #
-# Run from THIS directory so Compose resolves paths and the env file correctly:
-#     cd deploy && docker compose up --build
-#
-# Compose reads THIS directory's `.env` for the CINEPLAN_* variables below
-# (copy deploy/.env.example -> deploy/.env). Native development instead reads the
-# repo-root `.env` with UNPREFIXED names (the server's dotenv + Vite) — keep the
-# two separate. Build contexts (`../server`, `../client`) point at the repo root.
+# Reads the single repo-root .env (copy ../.env.example -> ../.env). Run from
+# THIS directory and point Compose at it so paths and the env file both resolve:
+#     cd deploy && docker compose --env-file ../.env up --build
 #
 # All compose-level variables are prefixed with CINEPLAN_ so this project's
-# settings never collide with the other projects on a shared host/.env. The
+# settings never collide with the other projects on the shared host. The
 # in-container variable names (left of the colon) are what the app reads and are
-# deliberately left unprefixed. Every value has a safe default — the stack comes
-# up with no .env beyond the required CINEPLAN_SECRET / CINEPLAN_TMDB_API_KEY.
+# deliberately left unprefixed; the server's dotenv also aliases CINEPLAN_FOO ->
+# FOO so native `npm run dev` reads the same file. Every value has a safe default
+# — the stack comes up with no .env beyond the required CINEPLAN_SECRET /
+# CINEPLAN_TMDB_API_KEY. Build contexts (`../server`, `../client`) point at root.
 #
 # Data-store URLs are env-configurable:
 #   - Local (default): the bundled `mongo` and `redis` services below.
@@ -99,7 +97,9 @@ services:
     stdin_open: true
     environment:
       # Used by the client once TMDB/API calls are routed through the backend.
-      VITE_API_BASE_URL: "${CINEPLAN_VITE_API_BASE_URL:-http://localhost:5000/api}"
+      # Keeps the VITE_ prefix (Vite only exposes VITE_*), so it is read straight
+      # from the root .env rather than via a CINEPLAN_-prefixed alias.
+      VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
     # No source bind-mount: this stack serves the built `dist` baked into the
     # image (`serve -s dist`). Mounting ../client over /app would shadow that
     # dist with a stale host build. Use docker-compose.dev.yml for live reload.
