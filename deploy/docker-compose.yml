@@ -35,12 +35,16 @@ services:
       # No default — Compose refuses to start if these are unset.
       SECRET: "${CINEPLAN_SECRET:?CINEPLAN_SECRET is required - set it in ./.env}"
       TMDB_API_KEY: "${CINEPLAN_TMDB_API_KEY:?CINEPLAN_TMDB_API_KEY is required - set it in ./.env}"
-      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-http://localhost:3000}"
+      # Public origin — set CINEPLAN_APP_URL to the subdomain in prod (behind Caddy
+      # the client + /api are same-origin). The CORS allowlist (CLIENT_ORIGIN) and
+      # the Google callback derive from it; either can still be set explicitly.
+      APP_URL: "${CINEPLAN_APP_URL:-}"
+      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-}"
       # Optional Google OAuth: the "Continue with Google" button only appears
       # when both id and secret are set. Callback must match the Google console.
       GOOGLE_CLIENT_ID: "${CINEPLAN_GOOGLE_CLIENT_ID:-}"
       GOOGLE_CLIENT_SECRET: "${CINEPLAN_GOOGLE_CLIENT_SECRET:-}"
-      GOOGLE_CALLBACK_URL: "${CINEPLAN_GOOGLE_CALLBACK_URL:-http://localhost:5000/api/auth/google/callback}"
+      GOOGLE_CALLBACK_URL: "${CINEPLAN_GOOGLE_CALLBACK_URL:-}"
     depends_on:
       mongo:
         condition: service_healthy
@@ -69,8 +73,10 @@ services:
       # warning until the key is set, so the stack still comes up locally.
       RESEND_API_KEY: "${CINEPLAN_RESEND_API_KEY:-}"
       EMAIL_FROM: "${CINEPLAN_EMAIL_FROM:-Cineplan <onboarding@resend.dev>}"
-      # Used to build the "Open in Cineplan" deep link in the email.
-      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-http://localhost:5173}"
+      # Used to build the "Open in Cineplan" deep link in the email. Derives from
+      # the public origin (CINEPLAN_APP_URL in prod); CLIENT_ORIGIN overrides it.
+      APP_URL: "${CINEPLAN_APP_URL:-}"
+      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-}"
     depends_on:
       mongo:
         condition: service_healthy

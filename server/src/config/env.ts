@@ -42,13 +42,22 @@ if (isProd) {
     );
 }
 
-// CLIENT_ORIGIN may be a single origin or a comma-separated allowlist (CORS).
-const clientOrigins = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
+const port = Number(process.env.PORT) || 5000;
+
+// Public origin of the app. Behind Caddy in production the client and /api are
+// same-origin, so this single knob (APP_URL) drives the CORS allowlist and the
+// Google callback. Leave unset for local dev — the localhost defaults below apply.
+// appUrl = public base; apiBase = where /api lives (appUrl in prod, localhost:PORT
+// in dev). Empty strings (e.g. blank Compose defaults) are treated as unset.
+const appUrl = process.env.APP_URL?.replace(/\/+$/, "") || undefined;
+const apiBase = appUrl ?? `http://localhost:${port}`;
+
+// CLIENT_ORIGIN may be a single origin or a comma-separated allowlist (CORS); it
+// falls back to APP_URL, then the localhost dev origins.
+const clientOrigins = (process.env.CLIENT_ORIGIN || appUrl || "http://localhost:5173,http://localhost:3000")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
-
-const port = Number(process.env.PORT) || 5000;
 
 // Google OAuth is optional: the strategy and routes only activate when both
 // client id and secret are provided, so the app runs fine without them.
@@ -72,7 +81,7 @@ const config = {
         enabled: Boolean(googleClientId && googleClientSecret),
         // Must exactly match an Authorized redirect URI in the Google console.
         callbackUrl:
-            process.env.GOOGLE_CALLBACK_URL ?? `http://localhost:${port}/api/auth/google/callback`,
+            process.env.GOOGLE_CALLBACK_URL || `${apiBase}/api/auth/google/callback`,
     },
     logLevel: process.env.LOG_LEVEL ?? (isProd ? "info" : "debug"),
 };
