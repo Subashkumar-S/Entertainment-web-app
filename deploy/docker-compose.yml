@@ -3,17 +3,23 @@
 # Run from THIS directory so Compose resolves paths and the env file correctly:
 #     cd deploy && docker compose up --build
 #
-# Variables come from the single repo-root `.env` (./.env here is a symlink to
-# ../.env). Build contexts (`../server`, `../client`) point back at the repo root.
+# Compose reads THIS directory's `.env` for the CINEPLAN_* variables below
+# (copy deploy/.env.example -> deploy/.env). Native development instead reads the
+# repo-root `.env` with UNPREFIXED names (the server's dotenv + Vite) — keep the
+# two separate. Build contexts (`../server`, `../client`) point at the repo root.
 #
-# MongoDB and Redis persist to host-side bind mounts under `./volumes/` so the
-# data lives alongside this compose file and survives `docker compose down`.
+# All compose-level variables are prefixed with CINEPLAN_ so this project's
+# settings never collide with the other projects on a shared host/.env. The
+# in-container variable names (left of the colon) are what the app reads and are
+# deliberately left unprefixed. Every value has a safe default — the stack comes
+# up with no .env beyond the required CINEPLAN_SECRET / CINEPLAN_TMDB_API_KEY.
 #
 # Data-store URLs are env-configurable:
 #   - Local (default): the bundled `mongo` and `redis` services below.
-#   - Production: override MONGODB_URI / REDIS_URL to point at cloud
-#     MongoDB Atlas and a managed Redis (Upstash, Render, etc.) — no
-#     compose or code change needed.
+#   - Production: set CINEPLAN_MONGODB_URI / CINEPLAN_REDIS_URL to cloud
+#     MongoDB Atlas + managed Redis — no compose or code change needed.
+#
+# MongoDB and Redis persist to host-side bind mounts under `./volumes/`.
 
 services:
   server:
@@ -21,22 +27,22 @@ services:
     container_name: cineplan-server
     restart: always
     ports:
-      - "127.0.0.1:5000:5000"
+      - "${CINEPLAN_BIND_IP:-127.0.0.1}:${CINEPLAN_SERVER_HOST_PORT:-8091}:${CINEPLAN_PORT:-5000}"
     environment:
-      PORT: "${PORT:-5000}"
+      PORT: "${CINEPLAN_PORT:-5000}"
       # Local defaults point at the mongo/redis containers below.
       # Override in production to use cloud MongoDB Atlas + managed Redis.
-      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/cineplan}"
-      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      MONGODB_URI: "${CINEPLAN_MONGODB_URI:-mongodb://mongo:27017/cineplan}"
+      REDIS_URL: "${CINEPLAN_REDIS_URL:-redis://redis:6379}"
       # No default — Compose refuses to start if these are unset.
-      SECRET: "${SECRET:?SECRET is required - set it in ./.env}"
-      TMDB_API_KEY: "${TMDB_API_KEY:?TMDB_API_KEY is required - set it in ./.env}"
-      CLIENT_ORIGIN: "${CLIENT_ORIGIN:-http://localhost:3000}"
+      SECRET: "${CINEPLAN_SECRET:?CINEPLAN_SECRET is required - set it in ./.env}"
+      TMDB_API_KEY: "${CINEPLAN_TMDB_API_KEY:?CINEPLAN_TMDB_API_KEY is required - set it in ./.env}"
+      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-http://localhost:3000}"
       # Optional Google OAuth: the "Continue with Google" button only appears
       # when both id and secret are set. Callback must match the Google console.
-      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
-      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
-      GOOGLE_CALLBACK_URL: "${GOOGLE_CALLBACK_URL:-http://localhost:5000/api/auth/google/callback}"
+      GOOGLE_CLIENT_ID: "${CINEPLAN_GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${CINEPLAN_GOOGLE_CLIENT_SECRET:-}"
+      GOOGLE_CALLBACK_URL: "${CINEPLAN_GOOGLE_CALLBACK_URL:-http://localhost:5000/api/auth/google/callback}"
     depends_on:
       mongo:
         condition: service_healthy
@@ -59,14 +65,14 @@ services:
     container_name: cineplan-worker
     restart: always
     environment:
-      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/cineplan}"
-      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      MONGODB_URI: "${CINEPLAN_MONGODB_URI:-mongodb://mongo:27017/cineplan}"
+      REDIS_URL: "${CINEPLAN_REDIS_URL:-redis://redis:6379}"
       # Reminder email delivery (Resend). Optional: the worker runs and logs a
-      # warning until RESEND_API_KEY is set, so the stack still comes up locally.
-      RESEND_API_KEY: "${RESEND_API_KEY:-}"
-      EMAIL_FROM: "${EMAIL_FROM:-Cineplan <onboarding@resend.dev>}"
+      # warning until the key is set, so the stack still comes up locally.
+      RESEND_API_KEY: "${CINEPLAN_RESEND_API_KEY:-}"
+      EMAIL_FROM: "${CINEPLAN_EMAIL_FROM:-Cineplan <onboarding@resend.dev>}"
       # Used to build the "Open in Cineplan" deep link in the email.
-      CLIENT_ORIGIN: "${CLIENT_ORIGIN:-http://localhost:5173}"
+      CLIENT_ORIGIN: "${CINEPLAN_CLIENT_ORIGIN:-http://localhost:5173}"
     depends_on:
       mongo:
         condition: service_healthy
@@ -89,11 +95,11 @@ services:
     container_name: cineplan-client
     restart: always
     ports:
-      - "127.0.0.1:3000:3000"
+      - "${CINEPLAN_BIND_IP:-127.0.0.1}:${CINEPLAN_CLIENT_HOST_PORT:-8081}:3000"
     stdin_open: true
     environment:
       # Used by the client once TMDB/API calls are routed through the backend.
-      VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
+      VITE_API_BASE_URL: "${CINEPLAN_VITE_API_BASE_URL:-http://localhost:5000/api}"
     # No source bind-mount: this stack serves the built `dist` baked into the
     # image (`serve -s dist`). Mounting ../client over /app would shadow that
     # dist with a stale host build. Use docker-compose.dev.yml for live reload.
@@ -117,8 +123,7 @@ services:
     image: mongo:7
     container_name: cineplan-mongo
     restart: always
-    ports:
-      - "127.0.0.1:27017:27017"
+    # Internal only — reached by the server over the compose network, never published.
     volumes:
       - ./volumes/mongo:/data/db
     healthcheck:
@@ -133,8 +138,7 @@ services:
     image: redis:7-alpine
     container_name: cineplan-redis
     restart: always
-    ports:
-      - "127.0.0.1:6379:6379"
+    # Internal only — reached by the server over the compose network, never published.
     volumes:
       - ./volumes/redis:/data
     healthcheck:

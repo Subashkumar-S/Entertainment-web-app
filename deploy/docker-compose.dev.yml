@@ -26,7 +26,7 @@ services:
     container_name: cineplan-mongo
     restart: unless-stopped
     ports:
-      - "127.0.0.1:27017:27017"
+      - "${CINEPLAN_BIND_IP:-127.0.0.1}:${CINEPLAN_MONGO_HOST_PORT:-27017}:27017"
     volumes:
       - ./volumes/mongo:/data/db
     healthcheck:
@@ -40,7 +40,7 @@ services:
     container_name: cineplan-redis
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6379:6379"
+      - "${CINEPLAN_BIND_IP:-127.0.0.1}:${CINEPLAN_REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - ./volumes/redis:/data
     healthcheck:
