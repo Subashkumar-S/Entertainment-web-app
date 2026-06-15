@@ -101,17 +101,20 @@ services:
       - cineplan-network
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        # Vite inlines this at BUILD time (a runtime env var is ignored by the
+        # static `serve -s dist`). Keeps the VITE_ prefix (Vite only exposes
+        # VITE_*). Local Docker defaults to the published server port (:8091);
+        # behind Caddy in prod the client + /api are same-origin, so set
+        # VITE_API_BASE_URL=/api in .env to bake that instead.
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8091/api}"
     container_name: cineplan-client
     restart: always
     ports:
       - "${CINEPLAN_BIND_IP:-127.0.0.1}:${CINEPLAN_CLIENT_HOST_PORT:-8081}:3000"
     stdin_open: true
-    environment:
-      # Used by the client once TMDB/API calls are routed through the backend.
-      # Keeps the VITE_ prefix (Vite only exposes VITE_*), so it is read straight
-      # from the root .env rather than via a CINEPLAN_-prefixed alias.
-      VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
     # No source bind-mount: this stack serves the built `dist` baked into the
     # image (`serve -s dist`). Mounting ./client over /app would shadow that
     # dist with a stale host build. Use docker-compose.dev.yml for live reload.
