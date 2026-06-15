@@ -19,9 +19,8 @@ dist-ssr
 *.env
 !.env.example
 
-# Docker bind-mount data (MongoDB / Redis) — keep the folder layout, not the data.
-deploy/volumes/*/*
-!deploy/volumes/*/.gitkeep
+# Docker bind-mount data (MongoDB / Redis) — created at runtime under ./volumes/.
+/volumes/
 
 # Frontend Mentor design files — their license forbids redistributing these.
 entertainment-web-app-figma/

@@ -1,8 +1,12 @@
 # Local development stack: client + server + MongoDB + Redis, all in Docker.
 #
-# Reads the single repo-root .env (copy ../.env.example -> ../.env). Run from
-# THIS directory and point Compose at it so paths and the env file both resolve:
-#     cd deploy && docker compose --env-file ../.env up --build
+# Lives at the repo root and reads the repo-root .env automatically (copy
+# .env.example -> .env). Run from the repo root:
+#     docker compose up -d --build      # start everything
+#     docker compose down               # stop
+#
+# An explicit project name (below) keeps this stack isolated from the sibling
+# projects regardless of the directory it's run from.
 #
 # All compose-level variables are prefixed with CINEPLAN_ so this project's
 # settings never collide with the other projects on the shared host. The
@@ -10,7 +14,7 @@
 # deliberately left unprefixed; the server's dotenv also aliases CINEPLAN_FOO ->
 # FOO so native `npm run dev` reads the same file. Every value has a safe default
 # — the stack comes up with no .env beyond the required CINEPLAN_SECRET /
-# CINEPLAN_TMDB_API_KEY. Build contexts (`../server`, `../client`) point at root.
+# CINEPLAN_TMDB_API_KEY.
 #
 # Data-store URLs are env-configurable:
 #   - Local (default): the bundled `mongo` and `redis` services below.
@@ -19,9 +23,11 @@
 #
 # MongoDB and Redis persist to host-side bind mounts under `./volumes/`.
 
+name: cineplan
+
 services:
   server:
-    build: ../server
+    build: ./server
     container_name: cineplan-server
     restart: always
     ports:
@@ -52,18 +58,18 @@ services:
         condition: service_healthy
     develop:
       watch:
-        - path: ../server/package.json
+        - path: ./server/package.json
           action: rebuild
-        - path: ../server/package-lock.json
+        - path: ./server/package-lock.json
           action: rebuild
-        - path: ../server
+        - path: ./server
           target: /app
           action: sync
     networks:
       - cineplan-network
 
   worker:
-    build: ../worker
+    build: ./worker
     container_name: cineplan-worker
     restart: always
     environment:
@@ -84,18 +90,18 @@ services:
         condition: service_healthy
     develop:
       watch:
-        - path: ../worker/package.json
+        - path: ./worker/package.json
           action: rebuild
-        - path: ../worker/package-lock.json
+        - path: ./worker/package-lock.json
           action: rebuild
-        - path: ../worker
+        - path: ./worker
           target: /app
           action: sync
     networks:
       - cineplan-network
 
   client:
-    build: ../client
+    build: ./client
     container_name: cineplan-client
     restart: always
     ports:
@@ -107,20 +113,20 @@ services:
       # from the root .env rather than via a CINEPLAN_-prefixed alias.
       VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:5000/api}"
     # No source bind-mount: this stack serves the built `dist` baked into the
-    # image (`serve -s dist`). Mounting ../client over /app would shadow that
+    # image (`serve -s dist`). Mounting ./client over /app would shadow that
     # dist with a stale host build. Use docker-compose.dev.yml for live reload.
     depends_on:
       - server
     develop:
       watch:
-        - path: ../client/package.json
+        - path: ./client/package.json
           action: rebuild
-        - path: ../client/package-lock.json
+        - path: ./client/package-lock.json
           action: rebuild
         # Static build — any source change needs a rebuild (no HMR here).
-        - path: ../client/src
+        - path: ./client/src
           action: rebuild
-        - path: ../client/index.html
+        - path: ./client/index.html
           action: rebuild
     networks:
       - cineplan-network

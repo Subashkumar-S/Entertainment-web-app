@@ -133,8 +133,8 @@ Leave them unset and the feature stays cleanly disabled.
 Start just MongoDB and Redis in Docker, and run the app on your host:
 
 ```bash
-# 1. data stores
-cd deploy && docker compose -f docker-compose.dev.yml up -d
+# 1. data stores  (from the repo root)
+docker compose -f docker-compose.dev.yml up -d
 
 # 2. API  (new terminal, from repo root)
 cd server && npm install && npm run dev      # http://localhost:5000
@@ -151,13 +151,13 @@ cd worker && npm install && npm run dev
 Build and run client + server + MongoDB + Redis together:
 
 ```bash
-cd deploy
-docker compose up --build
-# client → http://localhost:3000 , api → http://localhost:5000
+# from the repo root (reads ./.env automatically)
+docker compose up -d --build
+# client → http://localhost:8081 , api → http://localhost:8091
 ```
 
 `SECRET` and `TMDB_API_KEY` must be set in the root `.env` or Compose refuses to
-start. Mongo/Redis persist to bind mounts under `deploy/volumes/`.
+start. Mongo/Redis persist to bind mounts under `./volumes/`.
 
 ## Scripts
 

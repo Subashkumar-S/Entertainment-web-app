@@ -2,12 +2,12 @@
 #
 # Use this when you want to run the server (`npm run dev`) and client
 # (`npm run dev`) natively on your host for fast reloads, while still
-# getting real Mongo/Redis from containers.
+# getting real Mongo/Redis from containers. Run from the repo root:
 #
-#   cd deploy && docker compose --env-file ../.env -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml up -d
 #
 # First (once): copy the single repo-root env template and add your secrets:
-#   cp ../.env.example ../.env   # fill in CINEPLAN_SECRET + CINEPLAN_TMDB_API_KEY
+#   cp .env.example .env   # fill in CINEPLAN_SECRET + CINEPLAN_TMDB_API_KEY
 #
 # Then in two terminals (both read the same repo-root .env):
 #   cd server && npm run dev
@@ -16,9 +16,12 @@
 # Host-run server/client default to localhost:27017 (Mongo) and localhost:6379
 # (Redis) automatically — no data-store URLs needed in .env for local dev.
 #
-# Data persists to the same ./volumes/ bind mounts and uses the same container
-# names (cineplan-mongo / cineplan-redis) as the full `docker-compose.yml` stack. Run only
-# ONE of the two stacks at a time — Docker will refuse a duplicate container name.
+# Shares the project name (`cineplan`), the ./volumes/ bind mounts, and the
+# container names (cineplan-mongo / cineplan-redis) with the full
+# `docker-compose.yml` stack. Run only ONE of the two stacks at a time — Docker
+# will refuse a duplicate container name.
+
+name: cineplan
 
 services:
   mongo:
